@@ -1,0 +1,44 @@
+/*
+ * Created by yongshi zhu on 12/11/2022
+ * Email: 993015403@qq.com
+ * 
+ */
+syntax = "proto3";
+
+
+package VH;
+
+service RPC {
+
+// Search
+rpc search (SearchRequestMessage) returns (stream SearchReply) {}
+
+// Update
+rpc update (stream UpdateRequestMessage) returns ( ExecuteStatus ) {}
+
+
+}
+
+
+message UpdateRequestMessage
+{
+    bytes l = 1;
+    bytes e = 2;
+}
+
+message SearchRequestMessage
+{
+    bytes st = 1;
+	uint64 uc = 2; 
+}
+
+
+message SearchReply
+{
+	bytes ind = 1;
+}
+
+message ExecuteStatus
+{
+	bool status = 1; 
+}
