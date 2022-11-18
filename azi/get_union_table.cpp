@@ -1,0 +1,49 @@
+#include<iostream>
+#include<fstream>
+#include<bits/stdc++.h>
+using namespace std;
+
+void get_MM(std::string path,std::map<std::string,std::vector<std::string>>& MM){
+     std::ifstream MM_myfile(path);
+     std::string w,line;
+     while (getline(MM_myfile, line))								
+	{
+		std::stringstream input(line);
+		std::string out;
+        std::vector<std::string> ids;
+        input >> out;
+        w = out;
+		while (input >> out) {
+			ids.push_back(out);
+		}
+        MM[w] = ids;
+	}
+}
+
+int main(){
+    std::map<std::string,std::vector<std::string>> inverted_MM;
+    std::string inverted_MM_path = "/home/zws/Desktop/experience/test/inverted.txt";
+    get_MM(inverted_MM_path,inverted_MM);
+
+    // int sum = 0;
+    // cout<<"ok"<<endl;
+    std::ofstream	os("/home/zws/Desktop/experience/test/union_MM.txt",std::ios::app);
+    std::map<std::string,std::vector<std::string>>::iterator i = inverted_MM.begin();
+    for(;i!=inverted_MM.end();i++){
+        std::unordered_set<std::string> k1(i->second.begin(),i->second.end());
+        std::map<std::string,std::vector<std::string>>::iterator j = i;
+        ++j;
+        cout<<j->first<<endl;
+        for(;j!=inverted_MM.end();j++){
+            os<<i->first<<"∩"<<j->first<<" ";
+            for(auto z : j->second){
+                if(k1.find(z)!=k1.end()) os<<z<<" ";
+            }
+            os<<"\n";
+        }
+        // sum++;
+        // if(sum==2) break;
+    }
+    os.close();
+    return 0;
+}
