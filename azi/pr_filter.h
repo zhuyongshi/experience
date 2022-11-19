@@ -14,6 +14,7 @@
 #include <cryptopp/hex.h>
 #include <cryptopp/base64.h>
 #include <cryptopp/files.h>
+#include<cryptopp/config_int.h>
 
 using namespace CryptoPP;
 using namespace std;
@@ -35,6 +36,8 @@ int gen_key(byte *key);
 string Xor(const string s1, const string s2);
 
 string Permutation(int n, vector<string> kep, string pin);
+
+int Permutation2(int n, std::vector<std::string> kep, std::vector<std::string> pin, std::vector<std::string> &pout);
 
 string De_Permutation(int n, vector<string> kep, string dpin);
 
