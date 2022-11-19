@@ -24,6 +24,17 @@ void Test_Permutation()
     cout << endl;
 }
 
+void Test_Permutation2(){
+    int n=5;
+    std::vector<std::string> kep{"4", "2", "1", "3", "0"};
+    std::vector<std::string> pin{"id4", "id3", "id1", "id6", "id8"};
+    std::vector<std::string> pout(n);
+    Permutation2(n, kep, pin, pout);
+    for(int i = 0; i < n; i++){
+        std::cout<<pout[i]<<std::endl;
+    } 
+}
+
 //测试 FindConversion Key
 void Test_FindConversionKey()
 {

@@ -1,4 +1,5 @@
 #include "pr_filter.h"
+using namespace CryptoPP;
 
 string H1(const string message, string key)
 {
@@ -65,13 +66,13 @@ string padding(string s, int len)
     return r;
 }
 
-int gen_key(byte *key)
+int gen_key(byte *key1)
 {
     //产生一个随机数密钥串，长度为16字节
     AutoSeededRandomPool rand;
     SecByteBlock Key(0x00, AES::DEFAULT_KEYLENGTH);
     rand.GenerateBlock(Key, Key.size());
-    key = Key;
+    key1 = Key;
     return 1;
 }
 
@@ -99,6 +100,15 @@ string Permutation(int n, vector<string> kep, string pin)
         pout += (pin[atoi(kep[i].c_str())]);
     }
     return pout;
+}
+int Permutation2(int n, std::vector<std::string> kep, std::vector<std::string> pin, std::vector<std::string> &pout)
+{
+
+    for (size_t i = 0; i < n; i++)
+    {
+        pout[i] = (pin[atoi(kep[i].c_str())]);
+    }
+    return 0;
 }
 
 string De_Permutation(int n, vector<string> kep, string dpin)
