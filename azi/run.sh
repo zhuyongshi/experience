@@ -9,7 +9,7 @@ dbstr="debug"
 
 if [ "$1" = "$dbstr" ]
 then
-    g++ main.cpp pr_filter.cpp -o run -lcryptopp -g3
+    g++ main.cpp pr_filter.cpp -o run -lcryptopp -g3 -O3
     echo "编译可调试文件"
 else
     g++ main.cpp pr_filter.cpp -o run -lcryptopp
