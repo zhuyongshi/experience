@@ -1,9 +1,9 @@
 #include <iostream>
-#include <vector>
 #include <time.h>
 #include <cmath>
-#include <string>
 #include <bits/stdc++.h>
+// #include <std::string>
+// #include <std::vector>
 
 #include <crypto++/aes.h>
 #include <cryptopp/filters.h>
@@ -14,55 +14,72 @@
 #include <cryptopp/hex.h>
 #include <cryptopp/base64.h>
 #include <cryptopp/files.h>
-#include<cryptopp/config_int.h>
 
 using namespace CryptoPP;
-using namespace std;
 
-string H1(const string message, string key);
+// hash函数 带盐值
+std::string H1(const std::string message, std::string key);
 
-string H(const string message);
+// hash函数，不带盐值
+std::string H(const std::string message);
 
+// hash函数，输出Int
+int hash_k_int(const std::string message, const std::string key);
+
+// byte转Int
 int bytesToInt(byte *bytes, int size);
 
-int hash_k_int(const string message, const string key);
+// Int转byte
+byte *IntToBytes(int num);
 
-string toBinary(int n);
+// 整数转二进制
+std::string toBinary(int n);
 
-string padding(string s, int len);
+// 填充算法: 后面填0
+std::string padding(std::string s, int len);
 
-int gen_key(byte *key);
+// 产生随机数密钥串，类型为byte
+int gen_key(byte *key1);
 
-string Xor(const string s1, const string s2);
+// 产生随机数密钥串，类型为string
+std::string Gen_RandKey(int len);
 
-string Permutation(int n, vector<string> kep, string pin);
+// string 异或
+std::string Xor(const std::string s1, const std::string s2);
 
-int Permutation2(int n, std::vector<std::string> kep, std::vector<std::string> pin, std::vector<std::string> &pout);
+// 排列加密算法: 将pin按kep顺序排列，pin为string
+std::string Permutation(int n, std::vector<int> kep, std::string pin);
 
-string De_Permutation(int n, vector<string> kep, string dpin);
+// 排列加密算法: 将pin按kep顺序重排回原列
+std::string De_Permutation(int n, std::vector<int> kep, std::string dpin);
 
-vector<string> Find_CK(int n, vector<string> kpa, vector<string> kpb);
+// 排列加密算法：将pin按kep顺序排列，pin为string数组
+int Permutation2(int start, std::vector<int> kep, std::vector<std::string> pin, std::vector<std::string> &dpin);
 
-int Permutationkey_Gen(string key, int n, vector<string> &ret);
+// 排列加密算法: 将pin按kep顺序重排回原列
+int De_Permutation2(int start, std::vector<int> kep, std::vector<std::string> dpin, std::vector<std::string> &pin);
 
-void ANOTH(int ctr, int len, vector<string> m, vector<string> &mplus);
+// 根据kpa和kpb调整顺序
+std::vector<int> Find_CK(int n, std::vector<int> kpa, std::vector<int> kpb);
 
-void D_AONTH(int ctr, vector<string> mplus, vector<string> &m);
+// 密钥扩展函数，将密钥从key长度扩展到n长度
+int Permutationkey_Gen(std::string key, int n, std::vector<int> &ret);
 
-//随机生成长度为len的01密钥串
-string Gen_RandKey(int len);
+int ANOTH(int ctr, int len, std::vector<std::string> m, std::vector<std::string> &mplus);
 
-int Pr_Gen(vector<string> key, vector<string> w, int len, int n,
-           vector<string> &P1, vector<string> &P2, vector<string> &P3, string &retkey);
+int D_AONTH(int ctr, std::vector<std::string> mplus, std::vector<std::string> &m);
 
-int Pr_Enc(vector<string> key, vector<string> w, vector<string> m, int ctr, int len,
-        vector<string> &c);
+int Pr_Gen(std::vector<std::string> key, std::vector<std::string> w, int len, int n,
+           std::vector<std::string> &P1, std::vector<std::string> &P2, std::vector<std::string> &P3, std::string &retkey);
 
-int Pr_Dec(vector<string> key, vector<string> w, vector<string> c, int ctr, int len,
-        vector<string> &m);
+int Pr_Enc(std::vector<std::string> key, std::vector<std::string> w, std::vector<std::string> m, int ctr, int len,
+           std::vector<std::string> &c);
 
-int RG(vector<string> key, vector<string> w, int len, int s,
-       vector<vector<string>> &RetCK, vector<vector<string>> &RetP2, vector<string> &RetKeyfai);
+int Pr_Dec(std::vector<std::string> key, std::vector<std::string> w, std::vector<std::string> c, int ctr, int len,
+           std::vector<std::string> &m);
 
-int RE(vector<vector<string>> CK, vector<vector<string>> P2, vector<string> Keyfai, vector<string> c,
-      vector<string> &ret_c);
+int Pr_ReGen(std::vector<std::string> key, std::vector<std::string> w, int len, int s,
+             std::vector<std::vector<int>> &RetCK, std::vector<std::vector<int>> &RetP2, std::vector<std::string> &RetKeyPhi);
+
+int Pr_ReEnc(std::vector<std::vector<int>> CK, std::vector<std::vector<int>> P2, std::vector<std::string> KeyPhi, std::vector<std::string> c,
+             std::vector<std::string> &ret_c);
