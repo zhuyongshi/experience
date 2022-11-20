@@ -7,9 +7,6 @@
 #include "VH.Util.h"
 using namespace CryptoPP;
 
-// 系统参数
-int max_keyword_length = 20;
-int max_nodes_number = 10;
 
 namespace VH
 {
@@ -182,6 +179,7 @@ namespace VH
         }
         return output;
     }
+
 
     void Util::set_db_common_options(rocksdb::Options &options)
     {
