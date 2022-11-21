@@ -186,13 +186,16 @@ namespace VH
         //options.create_if_missing = true;
         options.create_if_missing = true;
         
-        
+        //对于哈希表的设置
         rocksdb::CuckooTableOptions cuckoo_options;
         cuckoo_options.identity_as_first_hash = false;
         cuckoo_options.hash_table_ratio = 0.9;  
 //        cuckoo_options.use_module_hash = false;
 //        cuckoo_options.identity_as_first_hash = true;
 
+        //RocksDB的调优选项
+        //table_cache_numshardbits 控制表缓存分片。如果表缓存互斥锁竞争激烈，增加这个。
+        //设置max_open_files为-1以永远允许打开文件，可以避免昂贵的表缓存调用。
         options.table_cache_numshardbits = 4;
         options.max_open_files = -1;
         
@@ -218,6 +221,7 @@ namespace VH
         
         options.allow_concurrent_memtable_write = options.memtable_factory->IsInsertConcurrentlySupported();
         
+        //关于lsm tree的一些容量配置
         options.max_bytes_for_level_base = 4294967296; // 4 GB
         options.arena_block_size = 134217728; // 128 MB
         options.level0_file_num_compaction_trigger = 10;
@@ -227,4 +231,14 @@ namespace VH
         options.write_buffer_size=1073741824; // 1GB
     }
 
-} // namespace ECSSE
+    bool file_exist (const std::string& path) {
+        return ( access( path.c_str(), F_OK ) != -1 );
+    }
+
+    void clear_txt(std::string path){
+        std::ofstream clear;
+        clear.open(path,std::ios::out);
+        clear.close();
+    }
+
+} // namespace VH

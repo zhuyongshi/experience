@@ -83,7 +83,8 @@ namespace VH{
             std::vector<UpdateRequestMessage> update_list;
             gen_update_list(update_list,DX);
             std::cout<<"setup update data to server"<<std::endl;
-            batch_update(update_list);
+            Status status = update(update_list);
+
             std::cout<<"setup update finished"<<std::endl;
         }
 
@@ -156,7 +157,7 @@ namespace VH{
             return kw_key;
         }
 
-        Status batch_update(std::vector<UpdateRequestMessage> update_list) {
+        Status update(std::vector<UpdateRequestMessage> update_list) {
             UpdateRequestMessage request;
 
             ClientContext context;

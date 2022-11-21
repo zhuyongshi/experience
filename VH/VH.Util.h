@@ -21,6 +21,8 @@
 #include <rocksdb/table.h>
 #include <rocksdb/memtablerep.h>
 #include <rocksdb/options.h>
+#include <fstream>
+#include <iostream>
 using namespace CryptoPP;
 
 #include <thread>
@@ -77,6 +79,10 @@ namespace VH
         static void encrypt(std::string key, std::string plaintext,std::string &ciphertext);  //AES加密
 
         static void print(std::string str);   //加密后debug工具
+
+        static bool file_exist (const std::string& path);
+
+        static void clear_txt(std::string path);
     };
 
 } 
