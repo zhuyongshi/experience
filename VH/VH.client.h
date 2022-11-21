@@ -7,11 +7,9 @@
 #ifndef VH_CLIENT_H
 #define VH_CLIENT_H
 #include <bits/stdc++.h>
-#include <rocksdb/db.h>
 #include <grpc++/grpc++.h>
 #include <VH.Util.h>
 #include "VH.grpc.pb.h"
-#include "logger.h"
 using grpc::Channel;
 using grpc::ClientAsyncResponseReaderInterface;
 using grpc::ClientContext;
@@ -25,9 +23,9 @@ byte k[17] = "0123456789abcdef";
 byte iv_s[17] = "0123456789abcdef";
 
 namespace VH{
-    //若 frist + cnt_true > n 会出现漏掉真实文档的情况，这个比较危险。
+    //若 frist + cnt_true > n 会出现漏掉真实文档的情况，这个比较危险，需要控制
     struct st{
-        int frist;  //查询头，这个数字也代表着继上一次查询已更新的次数
+        int query_first;  //查询头，这个数字也代表着继上一次查询已更新的次数
         int cnt_true; //目前关键字对应的真实文档
         int cnt_up;    //当前对关键字的更新次数
         std::string key;
@@ -35,20 +33,34 @@ namespace VH{
 
     class Client{
         public:
-        Client(std::shared_ptr<Channel> channel,std::string kw_path,int p_n,int p_l) : stub_(RPC::NewStub(channel))
+        Client(std::shared_ptr<Channel> channel,std::string kw_path,std::string MM_st_path,int p_n,int p_l) : stub_(RPC::NewStub(channel))
         {
             get_w_array(kw_path,fullkw);
             l = p_l;
             n = p_n;
-            
+            MM_st_txt_path = MM_st_path;
+            //如果这个文件不存在的话是没办法读MM_st的
+            //即 setup 时调用构造函数构造client对象的时候，不会走这里，毕竟需要生成MM_st嘛
+            //读取了以后，将MM_st.txt的内容清空，析构函数会将更新锅的MM_st重新写入
+            if(Util::file_exist(MM_st_txt_path)){
+                get_MM_st(MM_st_txt_path);
+                Util::clear_txt(MM_st_txt_path);
+            } 
         }
 
         ~Client()
         {
-           
+            std::ofstream	os(MM_st_txt_path,std::ios::app);
+           //将MM_st写回到文档里
+            for(auto i : MM_st){
+                os<<i.first<<" "<<i.second.query_first<<" "<<i.second.cnt_up<<" "<<i.second.cnt_true<<" "<<i.second.key<<"\n";
+             }
+            os.close();
         }
 
+       
         void setup(std::string MM_st_path){
+            std::ofstream	os(MM_st_path,std::ios::app);
             std::map<std::string,std::string> DX;
             for(auto kw : fullkw){
                 std::string kw_key = gen_kw_key(kw);
@@ -61,17 +73,42 @@ namespace VH{
                     DX[y] = e_value;
                 }
                 MM_st[kw].key = kw_key;
-                MM_st[kw].frist = 0;
+                MM_st[kw].query_first = 0;
                 MM_st[kw].cnt_true = 0;
                 MM_st[kw].cnt_up = n - 1;
+                os<<kw<<" "<<MM_st[kw].query_first<<" "<<MM_st[kw].cnt_up<<" "<<MM_st[kw].cnt_true<<" "<<MM_st[kw].key<<"\n";
                 break;
             }
+            os.close();
             std::vector<UpdateRequestMessage> update_list;
             gen_update_list(update_list,DX);
             std::cout<<"setup update data to server"<<std::endl;
             batch_update(update_list);
             std::cout<<"setup update finished"<<std::endl;
         }
+
+        void get_MM_st(std::string path){
+            std::ifstream MM_myfile(path);
+            std::string w,line;
+            
+            while (getline(MM_myfile, line))								
+            {
+                std::stringstream input(line);
+                std::string out;
+                input >> out;
+                w = out;
+                input >> out;
+                MM_st[w].query_first = stoi(out);
+                input >> out;
+                MM_st[w].cnt_up=stoi(out);
+                input >> out;
+                MM_st[w].cnt_true=stoi(out);
+                input >> out;
+                MM_st[w].key=out;
+            }
+            MM_myfile.close();
+        }
+
 
         void get_w_array(std::string path, std::vector<std::string>& kw_set){
             std::ifstream key_myfile(path);
@@ -84,6 +121,7 @@ namespace VH{
                     kw_set.push_back(out);
                 }
             }
+            key_myfile.close();
         }
 
 
@@ -138,14 +176,13 @@ namespace VH{
 
 
 
-
         private:
-            rocksdb::DB *db;
             std::map<std::string, st> MM_st; //client存的状态表
             std::vector<std::string> fullkw; //关键字全集
             std::unique_ptr<RPC::Stub> stub_;
             int n;  
             int l;
+            std::string MM_st_txt_path;
     };
 }
 
