@@ -18,13 +18,14 @@ namespace VH
         return std::string((const char *)buf, (size_t)SHA256::DIGESTSIZE);
     } 
 
-    std::string Util::H2(const std::string message)
+    std::string Util::H_key(const std::string key,const std::string message)
     {
         byte buf[SHA256::DIGESTSIZE];
-        std::string salt = "02";
+        std::string salt = key;
         SHA256().CalculateDigest(buf, (byte *)((message + salt).c_str()), message.length() + salt.length());
         return std::string((const char *)buf, (size_t)SHA256::DIGESTSIZE);
     }
+
     std::string Util::padding(const std::string str)
     {
         size_t BS = (size_t)AES::BLOCKSIZE;
@@ -94,11 +95,11 @@ namespace VH
         return result;
     }
     //AES解密函数
-    void Util::descrypt(std::string key, std::string ciphertext,std::string &plaintext){
+    void Util::descrypt(std::string key,std::string iv, std::string ciphertext,std::string &plaintext){
 		try
 		{
 			CFB_Mode< AES >::Decryption d;
-			d.SetKeyWithIV((byte*) key.c_str(), AES128_KEY_LEN, iv_s, (size_t)AES::BLOCKSIZE); 
+			d.SetKeyWithIV((byte*) key.c_str(), AES128_KEY_LEN, (byte*)iv.c_str(), (size_t)AES::BLOCKSIZE); 
 			byte tmp_new_st[AES128_KEY_LEN];
 			d.ProcessData(tmp_new_st, (byte*) ciphertext.c_str(), ciphertext.length());
 		    plaintext= std::string((const char*)tmp_new_st, ciphertext.length());
@@ -112,11 +113,11 @@ namespace VH
     }
 
     //AES加密函数
-    void Util::encrypt(std::string key, std::string plaintext,std::string &ciphertext){
+    void Util::encrypt(std::string key, std::string iv,std::string plaintext,std::string &ciphertext){
         try
 		{
 			CFB_Mode< AES >::Encryption e;
-			e.SetKeyWithIV((byte*) key.c_str(), AES128_KEY_LEN, iv_s, (size_t)AES::BLOCKSIZE); 
+			e.SetKeyWithIV((byte*) key.c_str(), AES128_KEY_LEN, (byte*)iv.c_str(), (size_t)AES::BLOCKSIZE); 
 			byte tmp_new_st[AES128_KEY_LEN];
 			e.ProcessData(tmp_new_st, (byte*) plaintext.c_str(), plaintext.length());
 		    ciphertext= std::string((const char*)tmp_new_st, plaintext.length());
@@ -231,11 +232,11 @@ namespace VH
         options.write_buffer_size=1073741824; // 1GB
     }
 
-    bool file_exist (const std::string& path) {
+    bool Util::file_exist (const std::string& path) {
         return ( access( path.c_str(), F_OK ) != -1 );
     }
 
-    void clear_txt(std::string path){
+    void Util::clear_txt(std::string path){
         std::ofstream clear;
         clear.open(path,std::ios::out);
         clear.close();

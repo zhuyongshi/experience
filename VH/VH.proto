@@ -11,7 +11,7 @@ package VH;
 service RPC {
 
 // Search
-rpc search (SearchRequestMessage) returns (stream SearchReply) {}
+rpc search (stream SearchRequestMessage) returns (stream SearchReply) {}
 
 // Update
 rpc update (stream UpdateRequestMessage) returns ( ExecuteStatus ) {}

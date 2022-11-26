@@ -50,6 +50,7 @@ namespace VH{
                 rocksdb::Status s;
                 rocksdb::WriteOptions write_option = rocksdb::WriteOptions();
                 {
+                    std::cout<<l<<" "<<e<<std::endl;
                     s = db->Put(write_option, l, e);
                 }
                 if (s.ok())
@@ -76,6 +77,7 @@ namespace VH{
             {
                 std::string l;
                 std::string e;
+                int sum = 0;
                 // TODO 读取数据库之前要加锁，读取之后要解锁
                 std::cout << "更新批量的键值对！" << std::endl;
                 UpdateRequestMessage request;
@@ -84,6 +86,8 @@ namespace VH{
                     l = request.l();
                     e = request.e();
                     store(ss_db, l, e);
+                    sum++;
+                    std::cout<<sum<<std::endl;
                 }
                 // TODO 读取之后需要解锁
                 response->set_status(true);
