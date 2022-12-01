@@ -41,14 +41,14 @@ class RPC final {
    public:
     virtual ~StubInterface() {}
     // Search
-    std::unique_ptr< ::grpc::ClientReaderInterface< ::VH::SearchReply>> search(::grpc::ClientContext* context, const ::VH::SearchRequestMessage& request) {
-      return std::unique_ptr< ::grpc::ClientReaderInterface< ::VH::SearchReply>>(searchRaw(context, request));
+    std::unique_ptr< ::grpc::ClientReaderWriterInterface< ::VH::SearchRequestMessage, ::VH::SearchReply>> search(::grpc::ClientContext* context) {
+      return std::unique_ptr< ::grpc::ClientReaderWriterInterface< ::VH::SearchRequestMessage, ::VH::SearchReply>>(searchRaw(context));
     }
-    std::unique_ptr< ::grpc::ClientAsyncReaderInterface< ::VH::SearchReply>> Asyncsearch(::grpc::ClientContext* context, const ::VH::SearchRequestMessage& request, ::grpc::CompletionQueue* cq, void* tag) {
-      return std::unique_ptr< ::grpc::ClientAsyncReaderInterface< ::VH::SearchReply>>(AsyncsearchRaw(context, request, cq, tag));
+    std::unique_ptr< ::grpc::ClientAsyncReaderWriterInterface< ::VH::SearchRequestMessage, ::VH::SearchReply>> Asyncsearch(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq, void* tag) {
+      return std::unique_ptr< ::grpc::ClientAsyncReaderWriterInterface< ::VH::SearchRequestMessage, ::VH::SearchReply>>(AsyncsearchRaw(context, cq, tag));
     }
-    std::unique_ptr< ::grpc::ClientAsyncReaderInterface< ::VH::SearchReply>> PrepareAsyncsearch(::grpc::ClientContext* context, const ::VH::SearchRequestMessage& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncReaderInterface< ::VH::SearchReply>>(PrepareAsyncsearchRaw(context, request, cq));
+    std::unique_ptr< ::grpc::ClientAsyncReaderWriterInterface< ::VH::SearchRequestMessage, ::VH::SearchReply>> PrepareAsyncsearch(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncReaderWriterInterface< ::VH::SearchRequestMessage, ::VH::SearchReply>>(PrepareAsyncsearchRaw(context, cq));
     }
     // Update
     std::unique_ptr< ::grpc::ClientWriterInterface< ::VH::UpdateRequestMessage>> update(::grpc::ClientContext* context, ::VH::ExecuteStatus* response) {
@@ -64,7 +64,7 @@ class RPC final {
      public:
       virtual ~async_interface() {}
       // Search
-      virtual void search(::grpc::ClientContext* context, const ::VH::SearchRequestMessage* request, ::grpc::ClientReadReactor< ::VH::SearchReply>* reactor) = 0;
+      virtual void search(::grpc::ClientContext* context, ::grpc::ClientBidiReactor< ::VH::SearchRequestMessage,::VH::SearchReply>* reactor) = 0;
       // Update
       virtual void update(::grpc::ClientContext* context, ::VH::ExecuteStatus* response, ::grpc::ClientWriteReactor< ::VH::UpdateRequestMessage>* reactor) = 0;
     };
@@ -72,9 +72,9 @@ class RPC final {
     virtual class async_interface* async() { return nullptr; }
     class async_interface* experimental_async() { return async(); }
    private:
-    virtual ::grpc::ClientReaderInterface< ::VH::SearchReply>* searchRaw(::grpc::ClientContext* context, const ::VH::SearchRequestMessage& request) = 0;
-    virtual ::grpc::ClientAsyncReaderInterface< ::VH::SearchReply>* AsyncsearchRaw(::grpc::ClientContext* context, const ::VH::SearchRequestMessage& request, ::grpc::CompletionQueue* cq, void* tag) = 0;
-    virtual ::grpc::ClientAsyncReaderInterface< ::VH::SearchReply>* PrepareAsyncsearchRaw(::grpc::ClientContext* context, const ::VH::SearchRequestMessage& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientReaderWriterInterface< ::VH::SearchRequestMessage, ::VH::SearchReply>* searchRaw(::grpc::ClientContext* context) = 0;
+    virtual ::grpc::ClientAsyncReaderWriterInterface< ::VH::SearchRequestMessage, ::VH::SearchReply>* AsyncsearchRaw(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq, void* tag) = 0;
+    virtual ::grpc::ClientAsyncReaderWriterInterface< ::VH::SearchRequestMessage, ::VH::SearchReply>* PrepareAsyncsearchRaw(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientWriterInterface< ::VH::UpdateRequestMessage>* updateRaw(::grpc::ClientContext* context, ::VH::ExecuteStatus* response) = 0;
     virtual ::grpc::ClientAsyncWriterInterface< ::VH::UpdateRequestMessage>* AsyncupdateRaw(::grpc::ClientContext* context, ::VH::ExecuteStatus* response, ::grpc::CompletionQueue* cq, void* tag) = 0;
     virtual ::grpc::ClientAsyncWriterInterface< ::VH::UpdateRequestMessage>* PrepareAsyncupdateRaw(::grpc::ClientContext* context, ::VH::ExecuteStatus* response, ::grpc::CompletionQueue* cq) = 0;
@@ -82,14 +82,14 @@ class RPC final {
   class Stub final : public StubInterface {
    public:
     Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options = ::grpc::StubOptions());
-    std::unique_ptr< ::grpc::ClientReader< ::VH::SearchReply>> search(::grpc::ClientContext* context, const ::VH::SearchRequestMessage& request) {
-      return std::unique_ptr< ::grpc::ClientReader< ::VH::SearchReply>>(searchRaw(context, request));
+    std::unique_ptr< ::grpc::ClientReaderWriter< ::VH::SearchRequestMessage, ::VH::SearchReply>> search(::grpc::ClientContext* context) {
+      return std::unique_ptr< ::grpc::ClientReaderWriter< ::VH::SearchRequestMessage, ::VH::SearchReply>>(searchRaw(context));
     }
-    std::unique_ptr< ::grpc::ClientAsyncReader< ::VH::SearchReply>> Asyncsearch(::grpc::ClientContext* context, const ::VH::SearchRequestMessage& request, ::grpc::CompletionQueue* cq, void* tag) {
-      return std::unique_ptr< ::grpc::ClientAsyncReader< ::VH::SearchReply>>(AsyncsearchRaw(context, request, cq, tag));
+    std::unique_ptr<  ::grpc::ClientAsyncReaderWriter< ::VH::SearchRequestMessage, ::VH::SearchReply>> Asyncsearch(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq, void* tag) {
+      return std::unique_ptr< ::grpc::ClientAsyncReaderWriter< ::VH::SearchRequestMessage, ::VH::SearchReply>>(AsyncsearchRaw(context, cq, tag));
     }
-    std::unique_ptr< ::grpc::ClientAsyncReader< ::VH::SearchReply>> PrepareAsyncsearch(::grpc::ClientContext* context, const ::VH::SearchRequestMessage& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncReader< ::VH::SearchReply>>(PrepareAsyncsearchRaw(context, request, cq));
+    std::unique_ptr<  ::grpc::ClientAsyncReaderWriter< ::VH::SearchRequestMessage, ::VH::SearchReply>> PrepareAsyncsearch(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncReaderWriter< ::VH::SearchRequestMessage, ::VH::SearchReply>>(PrepareAsyncsearchRaw(context, cq));
     }
     std::unique_ptr< ::grpc::ClientWriter< ::VH::UpdateRequestMessage>> update(::grpc::ClientContext* context, ::VH::ExecuteStatus* response) {
       return std::unique_ptr< ::grpc::ClientWriter< ::VH::UpdateRequestMessage>>(updateRaw(context, response));
@@ -103,7 +103,7 @@ class RPC final {
     class async final :
       public StubInterface::async_interface {
      public:
-      void search(::grpc::ClientContext* context, const ::VH::SearchRequestMessage* request, ::grpc::ClientReadReactor< ::VH::SearchReply>* reactor) override;
+      void search(::grpc::ClientContext* context, ::grpc::ClientBidiReactor< ::VH::SearchRequestMessage,::VH::SearchReply>* reactor) override;
       void update(::grpc::ClientContext* context, ::VH::ExecuteStatus* response, ::grpc::ClientWriteReactor< ::VH::UpdateRequestMessage>* reactor) override;
      private:
       friend class Stub;
@@ -116,9 +116,9 @@ class RPC final {
    private:
     std::shared_ptr< ::grpc::ChannelInterface> channel_;
     class async async_stub_{this};
-    ::grpc::ClientReader< ::VH::SearchReply>* searchRaw(::grpc::ClientContext* context, const ::VH::SearchRequestMessage& request) override;
-    ::grpc::ClientAsyncReader< ::VH::SearchReply>* AsyncsearchRaw(::grpc::ClientContext* context, const ::VH::SearchRequestMessage& request, ::grpc::CompletionQueue* cq, void* tag) override;
-    ::grpc::ClientAsyncReader< ::VH::SearchReply>* PrepareAsyncsearchRaw(::grpc::ClientContext* context, const ::VH::SearchRequestMessage& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientReaderWriter< ::VH::SearchRequestMessage, ::VH::SearchReply>* searchRaw(::grpc::ClientContext* context) override;
+    ::grpc::ClientAsyncReaderWriter< ::VH::SearchRequestMessage, ::VH::SearchReply>* AsyncsearchRaw(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq, void* tag) override;
+    ::grpc::ClientAsyncReaderWriter< ::VH::SearchRequestMessage, ::VH::SearchReply>* PrepareAsyncsearchRaw(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientWriter< ::VH::UpdateRequestMessage>* updateRaw(::grpc::ClientContext* context, ::VH::ExecuteStatus* response) override;
     ::grpc::ClientAsyncWriter< ::VH::UpdateRequestMessage>* AsyncupdateRaw(::grpc::ClientContext* context, ::VH::ExecuteStatus* response, ::grpc::CompletionQueue* cq, void* tag) override;
     ::grpc::ClientAsyncWriter< ::VH::UpdateRequestMessage>* PrepareAsyncupdateRaw(::grpc::ClientContext* context, ::VH::ExecuteStatus* response, ::grpc::CompletionQueue* cq) override;
@@ -132,7 +132,7 @@ class RPC final {
     Service();
     virtual ~Service();
     // Search
-    virtual ::grpc::Status search(::grpc::ServerContext* context, const ::VH::SearchRequestMessage* request, ::grpc::ServerWriter< ::VH::SearchReply>* writer);
+    virtual ::grpc::Status search(::grpc::ServerContext* context, ::grpc::ServerReaderWriter< ::VH::SearchReply, ::VH::SearchRequestMessage>* stream);
     // Update
     virtual ::grpc::Status update(::grpc::ServerContext* context, ::grpc::ServerReader< ::VH::UpdateRequestMessage>* reader, ::VH::ExecuteStatus* response);
   };
@@ -148,12 +148,12 @@ class RPC final {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status search(::grpc::ServerContext* /*context*/, const ::VH::SearchRequestMessage* /*request*/, ::grpc::ServerWriter< ::VH::SearchReply>* /*writer*/) override {
+    ::grpc::Status search(::grpc::ServerContext* /*context*/, ::grpc::ServerReaderWriter< ::VH::SearchReply, ::VH::SearchRequestMessage>* /*stream*/)  override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void Requestsearch(::grpc::ServerContext* context, ::VH::SearchRequestMessage* request, ::grpc::ServerAsyncWriter< ::VH::SearchReply>* writer, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncServerStreaming(0, context, request, writer, new_call_cq, notification_cq, tag);
+    void Requestsearch(::grpc::ServerContext* context, ::grpc::ServerAsyncReaderWriter< ::VH::SearchReply, ::VH::SearchRequestMessage>* stream, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncBidiStreaming(0, context, stream, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -184,20 +184,21 @@ class RPC final {
    public:
     WithCallbackMethod_search() {
       ::grpc::Service::MarkMethodCallback(0,
-          new ::grpc::internal::CallbackServerStreamingHandler< ::VH::SearchRequestMessage, ::VH::SearchReply>(
+          new ::grpc::internal::CallbackBidiHandler< ::VH::SearchRequestMessage, ::VH::SearchReply>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::VH::SearchRequestMessage* request) { return this->search(context, request); }));
+                   ::grpc::CallbackServerContext* context) { return this->search(context); }));
     }
     ~WithCallbackMethod_search() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status search(::grpc::ServerContext* /*context*/, const ::VH::SearchRequestMessage* /*request*/, ::grpc::ServerWriter< ::VH::SearchReply>* /*writer*/) override {
+    ::grpc::Status search(::grpc::ServerContext* /*context*/, ::grpc::ServerReaderWriter< ::VH::SearchReply, ::VH::SearchRequestMessage>* /*stream*/)  override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual ::grpc::ServerWriteReactor< ::VH::SearchReply>* search(
-      ::grpc::CallbackServerContext* /*context*/, const ::VH::SearchRequestMessage* /*request*/)  { return nullptr; }
+    virtual ::grpc::ServerBidiReactor< ::VH::SearchRequestMessage, ::VH::SearchReply>* search(
+      ::grpc::CallbackServerContext* /*context*/)
+      { return nullptr; }
   };
   template <class BaseClass>
   class WithCallbackMethod_update : public BaseClass {
@@ -235,7 +236,7 @@ class RPC final {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status search(::grpc::ServerContext* /*context*/, const ::VH::SearchRequestMessage* /*request*/, ::grpc::ServerWriter< ::VH::SearchReply>* /*writer*/) override {
+    ::grpc::Status search(::grpc::ServerContext* /*context*/, ::grpc::ServerReaderWriter< ::VH::SearchReply, ::VH::SearchRequestMessage>* /*stream*/)  override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
@@ -269,12 +270,12 @@ class RPC final {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status search(::grpc::ServerContext* /*context*/, const ::VH::SearchRequestMessage* /*request*/, ::grpc::ServerWriter< ::VH::SearchReply>* /*writer*/) override {
+    ::grpc::Status search(::grpc::ServerContext* /*context*/, ::grpc::ServerReaderWriter< ::VH::SearchReply, ::VH::SearchRequestMessage>* /*stream*/)  override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void Requestsearch(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncWriter< ::grpc::ByteBuffer>* writer, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncServerStreaming(0, context, request, writer, new_call_cq, notification_cq, tag);
+    void Requestsearch(::grpc::ServerContext* context, ::grpc::ServerAsyncReaderWriter< ::grpc::ByteBuffer, ::grpc::ByteBuffer>* stream, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncBidiStreaming(0, context, stream, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -304,20 +305,21 @@ class RPC final {
    public:
     WithRawCallbackMethod_search() {
       ::grpc::Service::MarkMethodRawCallback(0,
-          new ::grpc::internal::CallbackServerStreamingHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+          new ::grpc::internal::CallbackBidiHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
-                   ::grpc::CallbackServerContext* context, const::grpc::ByteBuffer* request) { return this->search(context, request); }));
+                   ::grpc::CallbackServerContext* context) { return this->search(context); }));
     }
     ~WithRawCallbackMethod_search() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status search(::grpc::ServerContext* /*context*/, const ::VH::SearchRequestMessage* /*request*/, ::grpc::ServerWriter< ::VH::SearchReply>* /*writer*/) override {
+    ::grpc::Status search(::grpc::ServerContext* /*context*/, ::grpc::ServerReaderWriter< ::VH::SearchReply, ::VH::SearchRequestMessage>* /*stream*/)  override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual ::grpc::ServerWriteReactor< ::grpc::ByteBuffer>* search(
-      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/)  { return nullptr; }
+    virtual ::grpc::ServerBidiReactor< ::grpc::ByteBuffer, ::grpc::ByteBuffer>* search(
+      ::grpc::CallbackServerContext* /*context*/)
+      { return nullptr; }
   };
   template <class BaseClass>
   class WithRawCallbackMethod_update : public BaseClass {
@@ -342,35 +344,8 @@ class RPC final {
       ::grpc::CallbackServerContext* /*context*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
   };
   typedef Service StreamedUnaryService;
-  template <class BaseClass>
-  class WithSplitStreamingMethod_search : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithSplitStreamingMethod_search() {
-      ::grpc::Service::MarkMethodStreamed(0,
-        new ::grpc::internal::SplitServerStreamingHandler<
-          ::VH::SearchRequestMessage, ::VH::SearchReply>(
-            [this](::grpc::ServerContext* context,
-                   ::grpc::ServerSplitStreamer<
-                     ::VH::SearchRequestMessage, ::VH::SearchReply>* streamer) {
-                       return this->Streamedsearch(context,
-                         streamer);
-                  }));
-    }
-    ~WithSplitStreamingMethod_search() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable regular version of this method
-    ::grpc::Status search(::grpc::ServerContext* /*context*/, const ::VH::SearchRequestMessage* /*request*/, ::grpc::ServerWriter< ::VH::SearchReply>* /*writer*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-    // replace default version of method with split streamed
-    virtual ::grpc::Status Streamedsearch(::grpc::ServerContext* context, ::grpc::ServerSplitStreamer< ::VH::SearchRequestMessage,::VH::SearchReply>* server_split_streamer) = 0;
-  };
-  typedef WithSplitStreamingMethod_search<Service > SplitStreamedService;
-  typedef WithSplitStreamingMethod_search<Service > StreamedService;
+  typedef Service SplitStreamedService;
+  typedef Service StreamedService;
 };
 
 }  // namespace VH

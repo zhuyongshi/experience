@@ -31,15 +31,17 @@ int main(int argc, char **argv)
     std::string stash_path = argv[4];
     std::map<std::string,std::queue<std::pair<std::string,std::string>>> stash;
     VH::get_stash(stash_path,stash);
+    VH::Util::clear_txt(stash_path);
 
     std::cout << "update 文档个数：" << update_num << std::endl;
     int j = 0;
     for(auto i : order_MM){
-        client.update_algorithm(i.first,i.second,stash,"0");
+        client.update_algorithm(i.first,i.second,stash,"0",j);
         j++;
         if(j>update_num) break;
     }
     
+    VH::write_stash_txt(stash_path,stash);
     std::cout << "update结束!" << std::endl;
     return 0;
 }
@@ -47,5 +49,5 @@ int main(int argc, char **argv)
 
 //取数据进行update
 /*
-    ./rpc_setup [kw_path] [MM_st_path] [order_MM_path] [stash_path.txt] [update_num] [n] [l] [thread_num]
+    ./rpc_update [kw_path] [MM_st_path] [order_MM_path] [stash_path.txt] [update_num] [n] [l] [thread_num]
 */

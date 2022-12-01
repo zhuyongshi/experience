@@ -28,7 +28,6 @@ namespace VH{
     struct st{
         int query_first;  //查询头，这个数字也代表着继上一次查询已更新的次数
         int cnt_true; //目前关键字对应的真实文档
-        int cnt_up;    //当前对关键字的更新次数
         std::string key;
     };
 
@@ -36,12 +35,13 @@ namespace VH{
         public:
         Client(std::shared_ptr<Channel> channel,std::string kw_path,std::string MM_st_path,int p_n,int p_l) : stub_(RPC::NewStub(channel))
         {
+            srand(time(0)); 
             get_w_array(kw_path,fullkw);
             l = p_l;
             n = p_n;
             MM_st_txt_path = MM_st_path;
             //如果这个文件不存在的话是没办法读MM_st的
-            //即 setup 时调用构造函数构造client对象的时候，不会走这里，毕竟需要生成MM_st嘛
+            //即 setup 时调用构造函数构造client对象的时候，会走下面的else
             //读取了以后，将MM_st.txt的内容清空，析构函数会将更新锅的MM_st重新写入
             if(Util::file_exist(MM_st_txt_path)){
                 std::cout<<"MM_st_txt exist"<<std::endl;
@@ -60,7 +60,7 @@ namespace VH{
             std::ofstream	os(MM_st_txt_path,std::ios::app);
            //将MM_st写回到文档里
             for(auto i : MM_st){
-                os<<i.first<<" "<<i.second.query_first<<" "<<i.second.cnt_up<<" "<<i.second.cnt_true<<" "<<i.second.key<<"\n";
+                os<<i.first<<" "<<i.second.query_first<<" "<<i.second.cnt_true<<" "<<i.second.key<<"\n";
              }
             os.close();
         }
@@ -68,8 +68,10 @@ namespace VH{
         void setup(){
             std::cout<<"setup()"<<std::endl;
             std::ofstream	os(MM_st_txt_path,std::ios::app);
-            std::map<std::string,std::string> DX;
+            
+            std::cout<<"setup update data to server"<<std::endl;
             for(auto kw : fullkw){
+                std::map<std::string,std::string> DX;
                 for(int i=0;i<n;i++){
                     std::string x = Util::H_key(MM_st[kw].key,kw); //保护关键字
                     std::string y = Util::H_key(x,std::to_string(i));  //产生加密索引
@@ -78,32 +80,51 @@ namespace VH{
                     Util::encrypt(K_enc,iv,std::to_string(i)+','+op,e_value); 
                     DX[y] = e_value;
                 }
-                break;
+                std::vector<UpdateRequestMessage> update_list;
+                gen_update_list(update_list,DX);
+                std::cout<<"update_list.size = "<<update_list.size()<<std::endl;
+                Status status = update(update_list);
             }
             os.close();
-            std::vector<UpdateRequestMessage> update_list;
-            gen_update_list(update_list,DX);
-            std::cout<<"update_list.size = "<<update_list.size()<<std::endl;
-            std::cout<<"setup update data to server"<<std::endl;
-            Status status = update(update_list);
             std::cout<<"setup update finished"<<std::endl;
+
         }
 
         void update_algorithm(std::string id,std::vector<std::string> &kw_arr,
                               std::map<std::string,std::queue<std::pair<std::string,std::string>>> &stash,
-                              std::string op){
+                              std::string op,int update_num)
+        {
             std::vector<std::string> random_kw(l);
             gen_random_kw_array(random_kw,l);
             std::vector<std::pair<std::string,std::string>> up_op_id(l);
             write_stash_and_gen_up(random_kw,kw_arr,id,op,stash,up_op_id);
-            
+            int i=0;
+            std::map<std::string,std::string> DX;
+            for(auto kw : random_kw){
+                if(MM_st[kw].query_first+MM_st[kw].cnt_true+1>n) std::cout<<"目前更新了:"<<update_num<<"个文档"<<std::endl;
+                if(MM_st[kw].cnt_true > n) std::cout<<"需要重新构建数据库"<<std::endl;
+                std::string x = Util::H_key(MM_st[kw].key,kw); //保护关键字
+                std::string y = Util::H_key(x,std::to_string(MM_st[kw].query_first+n+1));  //产生加密索引
+                std::string e_value; 
+                Util::encrypt(K_enc,iv,up_op_id[i++].first+','+up_op_id[i++].second,e_value);
+                MM_st[kw].query_first++;
+                DX[y] = e_value;
+            }
+            std::vector<UpdateRequestMessage> update_list;
+            gen_update_list(update_list,DX);
+            std::cout<<"update_list.size = "<<update_list.size()<<std::endl;
+            std::cout<<"update data to server"<<std::endl;
+            Status status = update(update_list);
+            std::cout<<"update finished"<<std::endl;
         }
+
+        
 
         void write_stash_and_gen_up(std::vector<std::string>& random_kw,std::vector<std::string>& kw,std::string id,
                                     std::string op,std::map<std::string,std::queue<std::pair<std::string,std::string>>> &stash,
                                     std::vector<std::pair<std::string,std::string>> &up_op_id)
         {
-            std::pair<std::string,std::string> temp_op_id(op,id);
+            std::pair<std::string,std::string> temp_op_id({op,id});
             std::unordered_set<std::string> set_random_kw(random_kw.begin(),random_kw.end());
             std::unordered_set<std::string> set_kw(kw.begin(),kw.end());
 
@@ -134,25 +155,23 @@ namespace VH{
 
         void gen_random_kw_array(std::vector<std::string>& random_kw,int l){
             for(int i=0;i<l;++i){
-            int temp = rand() % fullkw.size();
-                random_kw.push_back(fullkw[temp]);
+                int temp = rand() % fullkw.size();
+                random_kw[i]=fullkw[temp];
             }
         }
 
         void init_MM_st(){
             for(auto kw : fullkw){
-                std::string kw_key = gen_kw_key(kw);
-                MM_st[kw].key = kw_key;
+                MM_st[kw].key = kw + std::to_string(rand());
                 MM_st[kw].query_first = 0;
                 MM_st[kw].cnt_true = 0;
-                MM_st[kw].cnt_up = n - 1;
             }
         }
 
         void get_MM_st(std::string path){
             std::ifstream MM_myfile(path);
             std::string w,line;
-            
+            std::cout<<"open file success"<<std::endl;
             while (getline(MM_myfile, line))								
             {
                 std::stringstream input(line);
@@ -162,13 +181,13 @@ namespace VH{
                 input >> out;
                 MM_st[w].query_first = stoi(out);
                 input >> out;
-                MM_st[w].cnt_up=stoi(out);
-                input >> out;
                 MM_st[w].cnt_true=stoi(out);
                 input >> out;
                 MM_st[w].key=out;
+                std::cout<<MM_st[w].query_first<<" "<<MM_st[w].cnt_true<<" "<<std::endl;
             }
             MM_myfile.close();
+
         }
 
 
@@ -197,26 +216,6 @@ namespace VH{
             
         }
 
-        std::string gen_kw_key(const std::string kw){
-            // 使用padding方式将所有字符串补齐到16的整数倍长度
-            std::string kw_padding;
-            std::string kw_key;
-            try
-            {
-                CFB_Mode< AES >::Encryption e;
-                e.SetKeyWithIV(k, AES128_KEY_LEN, (byte*)iv.c_str(), (size_t)AES::BLOCKSIZE);
-                kw_padding = Util::padding(kw);
-                byte tmp_new_st[AES128_KEY_LEN];
-                e.ProcessData(tmp_new_st, (byte*) kw_padding.c_str(), AES128_KEY_LEN);
-                kw_key= std::string((const char*)tmp_new_st, AES128_KEY_LEN);
-            }
-            catch(const CryptoPP::Exception& e)
-            {
-                std::cerr << "in gen_kw_key() 在生成kw_key中出问题 " << e.what()<< std::endl;
-                exit(1);
-            }
-            return kw_key;
-        }
 
         Status update(std::vector<UpdateRequestMessage> update_list) {
             UpdateRequestMessage request;
@@ -269,25 +268,25 @@ namespace VH{
 
     //从文件中取出stash的方法
     void get_stash(std::string path,std::map<std::string,std::queue<std::pair<std::string,std::string>>> &stash){
-    std::ifstream myfile(path);
-    std::string line,kw;
-    while (getline(myfile, line))								
-	{
-		std::stringstream input(line);
-		std::string out;
-        std::pair<std::string,std::string> op_id;
-        std::queue<std::pair<std::string,std::string>> ids;
-        input >> out;
-        kw = out;
-		while (input >> out) {
-            op_id.first = out;
+        std::ifstream myfile(path);
+        std::string line,kw;
+        while (getline(myfile, line))								
+        {
+            std::stringstream input(line);
+            std::string out;
+            std::pair<std::string,std::string> op_id;
+            std::queue<std::pair<std::string,std::string>> ids;
             input >> out;
-            op_id.second = out;
-			ids.push(op_id);
-		}
-        stash[kw] = ids;
-	}
-    myfile.close();
+            kw = out;
+            while (input >> out) {
+                op_id.first = out;
+                input >> out;
+                op_id.second = out;
+                ids.push(op_id);
+            }
+            stash[kw] = ids;
+        }
+        myfile.close();
     }
 
     //将stash写入文件

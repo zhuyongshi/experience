@@ -16,4 +16,4 @@ int main(int argc, char *argv[])
     RunServer(std::string(argv[1]), atoi(argv[2]));
 }
 
-//.rpc_server [sdb_path] [threadsnum]
+// ./rpc_server [sdb_path] [threadsnum]

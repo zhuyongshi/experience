@@ -17,10 +17,10 @@ int main(int argc, char **argv)
         std::cerr << "参数个数小于2个" << std::endl;
         exit(-1);
     }
-    size_t thread_num = atoi(argv[3]);
+    size_t thread_num = atoi(argv[5]);
     //不同的数据集对应着不同的n、l
-    int n = 5;
-    int l = 521;
+    int n = atoi(argv[3]);
+    int l = atoi(argv[4]);
     std::string MM_st_path=argv[2];
     VH::Client client(grpc::CreateChannel("127.0.0.1:50051", grpc::InsecureChannelCredentials()), std::string(argv[1]),MM_st_path,n,l);
     std::cout << "setup开始！" << std::endl;
@@ -31,5 +31,5 @@ int main(int argc, char **argv)
 
 //取数据进行setup
 /*
-    ./rpc_setup [kw_path] [MM_st_path] [thread_num]
+    ./rpc_setup [kw_path] [MM_st_path] [n] [l] [thread_num]
 */
