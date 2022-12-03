@@ -123,14 +123,14 @@ const char descriptor_table_protodef_VH_2eproto[] PROTOBUF_SECTION_VARIABLE(prot
   "\n\001l\030\001 \001(\014\022\t\n\001e\030\002 \001(\014\".\n\024SearchRequestMes"
   "sage\022\n\n\002st\030\001 \001(\014\022\n\n\002uc\030\002 \001(\004\"\032\n\013SearchRe"
   "ply\022\013\n\003ind\030\001 \001(\014\"\037\n\rExecuteStatus\022\016\n\006sta"
-  "tus\030\001 \001(\0102y\n\003RPC\0227\n\006search\022\030.VH.SearchRe"
-  "questMessage\032\017.VH.SearchReply\"\0000\001\0229\n\006upd"
-  "ate\022\030.VH.UpdateRequestMessage\032\021.VH.Execu"
-  "teStatus\"\000(\001b\006proto3"
+  "tus\030\001 \001(\0102{\n\003RPC\0229\n\006search\022\030.VH.SearchRe"
+  "questMessage\032\017.VH.SearchReply\"\000(\0010\001\0229\n\006u"
+  "pdate\022\030.VH.UpdateRequestMessage\032\021.VH.Exe"
+  "cuteStatus\"\000(\001b\006proto3"
   ;
 static ::PROTOBUF_NAMESPACE_ID::internal::once_flag descriptor_table_VH_2eproto_once;
 const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_VH_2eproto = {
-  false, false, 300, descriptor_table_protodef_VH_2eproto, "VH.proto", 
+  false, false, 302, descriptor_table_protodef_VH_2eproto, "VH.proto", 
   &descriptor_table_VH_2eproto_once, nullptr, 0, 4,
   schemas, file_default_instances, TableStruct_VH_2eproto::offsets,
   file_level_metadata_VH_2eproto, file_level_enum_descriptors_VH_2eproto, file_level_service_descriptors_VH_2eproto,

@@ -7,9 +7,6 @@
 #include "VH.Util.h"
 using namespace CryptoPP;
 
-// 系统参数
-int max_keyword_length = 20;
-int max_nodes_number = 10;
 
 namespace VH
 {
@@ -21,13 +18,14 @@ namespace VH
         return std::string((const char *)buf, (size_t)SHA256::DIGESTSIZE);
     } 
 
-    std::string Util::H2(const std::string message)
+    std::string Util::H_key(const std::string key,const std::string message)
     {
         byte buf[SHA256::DIGESTSIZE];
-        std::string salt = "02";
+        std::string salt = key;
         SHA256().CalculateDigest(buf, (byte *)((message + salt).c_str()), message.length() + salt.length());
         return std::string((const char *)buf, (size_t)SHA256::DIGESTSIZE);
     }
+
     std::string Util::padding(const std::string str)
     {
         size_t BS = (size_t)AES::BLOCKSIZE;
@@ -97,11 +95,11 @@ namespace VH
         return result;
     }
     //AES解密函数
-    void Util::descrypt(std::string key, std::string ciphertext,std::string &plaintext){
+    void Util::descrypt(std::string key,std::string iv, std::string ciphertext,std::string &plaintext){
 		try
 		{
 			CFB_Mode< AES >::Decryption d;
-			d.SetKeyWithIV((byte*) key.c_str(), AES128_KEY_LEN, iv_s, (size_t)AES::BLOCKSIZE); 
+			d.SetKeyWithIV((byte*) key.c_str(), AES128_KEY_LEN, (byte*)iv.c_str(), (size_t)AES::BLOCKSIZE); 
 			byte tmp_new_st[AES128_KEY_LEN];
 			d.ProcessData(tmp_new_st, (byte*) ciphertext.c_str(), ciphertext.length());
 		    plaintext= std::string((const char*)tmp_new_st, ciphertext.length());
@@ -115,11 +113,11 @@ namespace VH
     }
 
     //AES加密函数
-    void Util::encrypt(std::string key, std::string plaintext,std::string &ciphertext){
+    void Util::encrypt(std::string key, std::string iv,std::string plaintext,std::string &ciphertext){
         try
 		{
 			CFB_Mode< AES >::Encryption e;
-			e.SetKeyWithIV((byte*) key.c_str(), AES128_KEY_LEN, iv_s, (size_t)AES::BLOCKSIZE); 
+			e.SetKeyWithIV((byte*) key.c_str(), AES128_KEY_LEN, (byte*)iv.c_str(), (size_t)AES::BLOCKSIZE); 
 			byte tmp_new_st[AES128_KEY_LEN];
 			e.ProcessData(tmp_new_st, (byte*) plaintext.c_str(), plaintext.length());
 		    ciphertext= std::string((const char*)tmp_new_st, plaintext.length());
@@ -183,18 +181,22 @@ namespace VH
         return output;
     }
 
+
     void Util::set_db_common_options(rocksdb::Options &options)
     {
         //options.create_if_missing = true;
         options.create_if_missing = true;
         
-        
+        //对于哈希表的设置
         rocksdb::CuckooTableOptions cuckoo_options;
         cuckoo_options.identity_as_first_hash = false;
         cuckoo_options.hash_table_ratio = 0.9;  
 //        cuckoo_options.use_module_hash = false;
 //        cuckoo_options.identity_as_first_hash = true;
 
+        //RocksDB的调优选项
+        //table_cache_numshardbits 控制表缓存分片。如果表缓存互斥锁竞争激烈，增加这个。
+        //设置max_open_files为-1以永远允许打开文件，可以避免昂贵的表缓存调用。
         options.table_cache_numshardbits = 4;
         options.max_open_files = -1;
         
@@ -220,6 +222,7 @@ namespace VH
         
         options.allow_concurrent_memtable_write = options.memtable_factory->IsInsertConcurrentlySupported();
         
+        //关于lsm tree的一些容量配置
         options.max_bytes_for_level_base = 4294967296; // 4 GB
         options.arena_block_size = 134217728; // 128 MB
         options.level0_file_num_compaction_trigger = 10;
@@ -229,4 +232,14 @@ namespace VH
         options.write_buffer_size=1073741824; // 1GB
     }
 
-} // namespace ECSSE
+    bool Util::file_exist (const std::string& path) {
+        return ( access( path.c_str(), F_OK ) != -1 );
+    }
+
+    void Util::clear_txt(std::string path){
+        std::ofstream clear;
+        clear.open(path,std::ios::out);
+        clear.close();
+    }
+
+} // namespace VH

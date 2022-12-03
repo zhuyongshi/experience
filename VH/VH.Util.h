@@ -21,6 +21,8 @@
 #include <rocksdb/table.h>
 #include <rocksdb/memtablerep.h>
 #include <rocksdb/options.h>
+#include <fstream>
+#include <iostream>
 using namespace CryptoPP;
 
 #include <thread>
@@ -36,12 +38,8 @@ using namespace CryptoPP;
 #define VALUE_LEN (MAX_IND_LEN + MAX_OP_LEN + MAX_ST_LEN) // VALUE = IND||OP||ST = 55
 
 #define random(x) (rand() % x)
-// 用来生成kw
-extern byte k_s[17];
-extern byte iv_s[17];
 
-extern int max_keyword_length;
-extern int max_nodes_number;
+
 
 namespace VH
 {
@@ -52,7 +50,7 @@ namespace VH
     public:
         static std::string H1(const std::string message);  //sha256  盐01
 
-        static std::string H2(const std::string message);  //sha256  盐02
+        static std::string H_key(const std::string key,const std::string message);
 
         static std::string padding(const std::string str);  //填充到16位byte
 
@@ -72,11 +70,15 @@ namespace VH
 
         static void set_db_common_options(rocksdb::Options &options);
 
-        static void descrypt(std::string key, std::string ciphertext, std::string &plaintext); //AES解密
+        static void descrypt(std::string key, std::string iv,std::string ciphertext, std::string &plaintext); //AES解密
 
-        static void encrypt(std::string key, std::string plaintext,std::string &ciphertext);  //AES加密
+        static void encrypt(std::string key, std::string iv,std::string plaintext,std::string &ciphertext);  //AES加密
 
         static void print(std::string str);   //加密后debug工具
+
+        static bool file_exist (const std::string& path);
+
+        static void clear_txt(std::string path);
     };
 
 } 

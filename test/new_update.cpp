@@ -96,7 +96,7 @@ void write_stash(std::vector<std::string>& random_kw,std::vector<std::string>& k
 
 
 int main(){
-    int max = 0;
+    int update_pair_num = 0;
     srand(time(0));
     std::string kw_path = "/home/zws/Desktop/experience/test/01_04/0_key_02.txt";
     get_w_array(kw_path,fullkw);
@@ -116,12 +116,12 @@ int main(){
         write_stash(random_kw,i.second,i.first);
         cout<<stash_id.size()<<" ";
         cout<<stash_number<<endl;
-        max = max > stash_number ? max : stash_number;
+        update_pair_num += i.second.size(); 
         sum++;
         if(sum == 100) break;
     }
 
 
-    cout<<"max = "<<max<<endl;
+    cout<<"update_pair_num = "<<update_pair_num<<endl;
     return 0;
 }
