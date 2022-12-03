@@ -7,6 +7,7 @@
                 "-g",
                 "/home/xie/experience/azi/pr_filter.cpp",
                 "/home/xie/experience/azi/main.cpp",
+                "/home/xie/experience/azi/ecsse_util.cpp",
                 "-o",
                 "/home/xie/experience/azi/run",
                 "-lcryptopp"
