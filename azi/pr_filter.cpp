@@ -1,133 +1,22 @@
 #include "pr_filter.h"
 
-// hash函数 带盐值
-std::string H1(const std::string message, std::string key)
+int find_w12_from_w(std::string word, std::string &w1, std::string &w2)
 {
-    byte buf[SHA256::DIGESTSIZE];
-    std::string salt = key;
-    SHA256().CalculateDigest(buf, (byte *)((message + salt).c_str()), message.length() + salt.length());
-    return std::string((const char *)buf, (size_t)SHA256::DIGESTSIZE);
-}
-
-// hash函数，不带盐值
-std::string H(const std::string message)
-{
-    byte buf[SHA256::DIGESTSIZE];
-    std::string salt = "01";
-    SHA256().CalculateDigest(buf, (byte *)((message + salt).c_str()), message.length() + salt.length());
-    return std::string((const char *)buf, (size_t)SHA256::DIGESTSIZE);
-}
-
-// hash函数，输出Int
-int hash_k_int(const std::string message, const std::string key)
-{
-    byte buf[SHA256::DIGESTSIZE];
-    std::string salt = key;
-    SHA256().CalculateDigest(buf, (byte *)((message + salt).c_str()), message.length() + salt.length());
-    return bytesToInt(buf, 4);
-}
-
-// byte转Int
-int bytesToInt(byte *bytes, int size = 4)
-{
-    int addr = bytes[0] & 0xFF;
-    addr |= ((bytes[1] << 8) & 0xFF00);
-    addr |= ((bytes[2] << 16) & 0xFF0000);
-    addr |= ((bytes[3] << 24) & 0xFF000000);
-    return addr;
-}
-
-// Int转byte
-byte *IntToBytes(int num)
-{
-    byte *ans=new byte[4];
-    ans[0] = (byte)(num);
-    ans[1] = (byte)(num >> 8);
-    ans[2] = (byte)(num >> 16);
-    ans[3] = (byte)(num >> 24);
-    return ans;
-}
-
-// 整数转二进制
-std::string toBinary(int n)
-{
-    std::string r;
-    while (n != 0)
+    if (word == "")
     {
-        r += (n % 2 == 0 ? "0" : "1");
-        n /= 2;
+        w1 = "";
+        w2 = "";
+        return 0;
     }
-    reverse(r.begin(), r.end());
-    return r;
-}
-
-// 填充算法: 后面填0
-std::string padding(std::string s, int len)
-{
-    std::string r;
-    if (s.size() < len)
+    int idx = word.find("∩");
+    if (idx == -1)
     {
-        int count = len - s.size();
-        while (count)
-        {
-            r += "0";
-            count--;
-        }
-        r += s;
+        std::cout << "substr without ∩, wrong msg: " << word << std::endl;
+        return -1;
     }
-    else
-    {
-        r = s.substr(0, len);
-    }
-    return r;
-}
-
-// 产生随机数密钥串，类型为byte
-int gen_key(byte *key1)
-{
-    //产生一个随机数密钥串，长度为16字节
-    AutoSeededRandomPool rand;
-    SecByteBlock Key(0x00, AES::DEFAULT_KEYLENGTH);
-    rand.GenerateBlock(Key, Key.size());
-    key1 = Key;
-    return 1;
-}
-
-// 产生随机数密钥串，类型为string
-std::string Gen_RandKey(int len)
-{
-    srand(time(NULL));
-    std::string key = "";
-    int rn;
-    while (len != 0)
-    {
-        rn = rand();
-        while (rn != 0)
-        {
-            if (len == 0)
-                break;
-            key += std::to_string((rn % 10) % 2);
-            rn /= 10;
-            --len;
-        }
-    }
-    return key;
-}
-
-// string 异或
-std::string Xor(const std::string s1, const std::string s2)
-{
-    if (s1.length() != s2.length())
-    {
-        std::cout << "[Xor] not sufficient size: " << s1.length() << ", " << s2.length() << std::endl;
-        return "";
-    }
-    std::string ans = s1;
-    for (int i = 0; i < ans.length(); i++)
-    {
-        ans[i] = ans[i] ^ s2[i];
-    }
-    return ans;
+    w1 = word.substr(0, idx);
+    w2 = word.substr(idx + 3, word.size() - idx);
+    return 0;
 }
 
 // 排列加密算法: 将pin按kep顺序排列，pin为string
@@ -162,7 +51,7 @@ int Permutation2(int start, std::vector<int> kep, std::vector<std::string> pin, 
 {
     for (size_t i = 0; i < kep.size(); i++)
     {
-        dpin[i+start] = (pin[start+kep[i]]);
+        dpin[i + start] = (pin[start + kep[i]]);
     }
     return 0;
 }
@@ -172,7 +61,7 @@ int De_Permutation2(int start, std::vector<int> kep, std::vector<std::string> dp
 {
     for (size_t i = 0; i < kep.size(); i++)
     {
-        pin[kep[i]+start] = dpin[i+start];
+        pin[kep[i] + start] = dpin[i + start];
     }
     return 0;
 }
@@ -464,7 +353,7 @@ int Pr_ReEnc(std::vector<std::vector<int>> CK, std::vector<std::vector<int>> P2,
         cplus[i] = Permutation(CK[0].size(), CK[0], Xor(c[i], Permutation(P2[0].size(), P2[0], c[i - 1])));
     }
     // c1''..cs''= Perm(CK3, c1'...cs')
-    if(Permutation2(1, CK[1], cplus, cplusplus))
+    if (Permutation2(1, CK[1], cplus, cplusplus))
     {
         std::cout << "[Pr_ReEnc] run Permutation2 err" << std::endl;
         return -1;
@@ -478,5 +367,196 @@ int Pr_ReEnc(std::vector<std::vector<int>> CK, std::vector<std::vector<int>> P2,
     {
         ret_c[i] = Xor(cplusplus[i], Permutation(P2[1].size(), P2[1], ret_c[i - 1]));
     }
+    return 0;
+}
+
+void sEMM_Setup(int lambda, std::map<std::string, std::vector<std::string>> MMp,
+                std::string &mskp, std::map<std::string, std::vector<std::string>> &EMMp)
+{
+    mskp = Gen_RandKey(lambda);
+    for (auto mmp : MMp)
+    {
+        std::string key_cipher;
+        encrypt(mskp, mmp.first, key_cipher);
+        EMMp[key_cipher] = mmp.second;
+    }
+}
+
+void sEMM_Token(std::string mskp, std::string w1, std::string w2, std::string &token)
+{
+    encrypt(mskp, w1 + "∩" + w2, token);
+}
+
+void sEMM_Search(std::string tokp, std::map<std::string, std::vector<std::string>> EMMp, std::vector<std::string> &tags)
+{
+    tags = EMMp[tokp];
+}
+
+int PR_Filter_Setup(pr_filter_setup_param param, pr_filter_setup_res &res)
+{
+    srand(time(NULL));
+    // generate random key
+    res.mk.kv = Gen_RandKey(param.lambda);
+    res.mk.kt = Gen_RandKey(param.lambda);
+    res.mk.kp = Gen_RandKey(param.lambda);
+    res.mk.kx = Gen_RandKey(param.lambda);
+    res.mk.kxor = Gen_RandKey(param.mu);
+    // init mmp and dx
+    std::map<std::string, std::vector<std::string>> MMp;
+    for (auto mm : param.MM)
+    {
+        int s = mm.second.size(), n = s + 1;
+        // get a b
+        std::string a, b;
+        if (find_w12_from_w(mm.first, a, b) != 0)
+        {
+            std::cout << "[PR_Filter_Setup] call find_w12_from_w err: " << mm.first << std::endl;
+            return -1;
+        }
+        // keyab_enc=F(Kp, a||b)
+        std::string key_ab_enc = H1(res.mk.kp, a + b);
+        // DX[(a,b)]<-ctr
+        unsigned int ctr = rand() % 1000000;
+        res.DX.insert(std::pair<std::string, int>{mm.first, ctr});
+        // c0..cs = Pr.Enc(Kv, kt, kxor, a, b, ctr, v1...vs, len, s)
+        std::vector<std::string> c(n);
+        std::vector<std::string> key{res.mk.kv, res.mk.kt, res.mk.kxor};
+        std::vector<std::string> w{a, b};
+        int len = 0;
+        if (s > 0)
+        {
+            len = mm.second[0].size();
+        }
+        if (Pr_Enc(key, w, mm.second, ctr, len, c) != 0)
+        {
+            std::cout << "[PR_Filter_Setup] call Pr_Enc failed" << std::endl;
+            return -1;
+        }
+        // encrypt tag(a,b,v)=Aes_Enc(keyab_enc, ci)
+        std::vector<std::string> tag(n);
+        for (int i = 0; i < n; i++)
+        {
+            encrypt(key_ab_enc, c[i], tag[i]);
+        }
+        MMp[mm.first] = tag;
+
+        // keyab_x=F(Kp, a||b)
+        std::string key_ab_x = H1(res.mk.kx, a + b);
+        // tag <- xset
+        for (int i = 0; i < n; i++)
+        {
+            res.emm.Xset.insert(H1(key_ab_x, c[i]));
+        }
+    }
+    // mskp, EMMp = sEMM_Setup(1_lamda, MMp)
+    sEMM_Setup(param.lambda, MMp, res.mk.mskp, res.emm.EMMp);
+    return 0;
+}
+
+int PR_Filter_Token(pr_filter_token_param param, pr_filter_token_res &res)
+{
+    if (param.words.size() < 2)
+    {
+        std::cout << "[PR_Filter_Token] words size too little err: " << param.words.size() << std::endl;
+        return -1;
+    }
+    // tokp1=sEMM.Token(mskp, (w1, w2))
+    sEMM_Token(param.mk.mskp, param.words[0], param.words[1], res.tokp);
+    // k_w12_enc = hash(kp, w1+w2)
+    res.k_w12_enc = H1(param.mk.kp, param.words[0] + param.words[1]);
+    // n = word.size()
+    int n = param.words.size();
+    for (int i = 2; i < n; i++)
+    {
+        // kred = PR.ReGen(kv, kt, kxor, w1, wd-1, wd, len, s)
+        std::vector<std::string> input_key{param.mk.kv, param.mk.kt, param.mk.kxor};
+        std::vector<std::string> input_w{param.words[0], param.words[i - 1], param.words[i]};
+        std::vector<std::vector<int>> CK;
+        std::vector<std::vector<int>> P2;
+        std::vector<std::string> KeyPhi;
+        Pr_ReGen(input_key, input_w, param.len, param.s, CK, P2, KeyPhi);
+        // split
+        key_re_d k_re_d;
+        k_re_d.CK = CK;
+        k_re_d.P2 = P2;
+        k_re_d.KeyPhi = KeyPhi;
+        // kxi = hash(kx, w1+wd)
+        k_re_d.kx = H1(param.mk.kx, param.words[0] + param.words[i]);
+        res.tokp_vec.push_back(k_re_d);
+    }
+    // done
+    return 0;
+}
+
+int PR_Filter_Search(pr_filter_search_param param, pr_filter_search_res &res)
+{
+    // tagl = sEMM.Search(tokp, EMMp)
+    std::vector<std::string> tags_l;
+    sEMM_Search(param.tokq.tokp, param.emm.EMMp, tags_l);
+    // ci = Dec(k_w1_w2_enc, tagl)
+    std::vector<std::string> c(tags_l.size());
+    for (int i = 0; i < tags_l.size(); i++)
+    {
+        descrypt(param.tokq.k_w12_enc, tags_l[i], c[i]);
+    }
+    // optimization
+    // for l=1..L
+    // for d=3..nl
+    // cl = PR.ReEnc(k_re_d, cl)
+    // dtage(l,d) = F(kx, cl')
+    int n = c.size(), s = n - 1;
+    std::vector<bool> vaild(s, true);
+    std::string dtag;
+    for (int i = 0; i < param.tokq.tokp_vec.size(); i++)
+    {
+        std::vector<std::string> cplus(c.size());
+        Pr_ReEnc(param.tokq.tokp_vec[i].CK, param.tokq.tokp_vec[i].P2, param.tokq.tokp_vec[i].KeyPhi, c, cplus);
+        for (int j = 0; j < c.size(); j++)
+        {
+            c[j] = cplus[j];
+        }
+        for (int j = 1; j < n; j++)
+        {
+            if (!vaild[j - 1])
+                continue;
+            dtag = H1(param.tokq.tokp_vec[i].kx, cplus[j]);
+            if (param.emm.Xset.find(dtag) == param.emm.Xset.end())
+            {
+                vaild[j - 1] = false;
+            }
+        }
+    }
+    // done
+    return 0;
+}
+
+int PR_Filter_Resolve(pr_filter_resolve_param param, std::vector<std::string> &res)
+{
+    if (param.c.size() != param.vaild.size() + 1)
+    {
+        std::cout << "[PR_Filter_Resolve] vaild size wrong: " << param.vaild.size() << std::endl;
+        return -1;
+    }
+    // ctr=Dx[(w1, wn)]
+    int ctr = param.DX[param.w1 + "∩" + param.wn];
+    // v1..vs=PR.Dec(kv, kt, kxor, w1, wn, ctr, c0..cs)
+    int n = param.c.size(), s = n - 1, len = 0;
+    if (n > 0)
+    {
+        len = param.c[0].size();
+    }
+    std::vector<std::string> v(s);
+    std::vector<std::string> key{param.mk.kv, param.mk.kt, param.mk.kxor};
+    std::vector<std::string> w{param.w1, param.wn};
+    Pr_Dec(key, w, param.c, ctr, len, v);
+    // get vaild value
+    for (int i = 0; i < s; i++)
+    {
+        if (param.vaild[i])
+        {
+            res.push_back(v[i]);
+        }
+    }
+    // done
     return 0;
 }

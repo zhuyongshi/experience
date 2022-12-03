@@ -5,6 +5,18 @@ void Test_GenKey()
     std::cout << Gen_RandKey(10) << std::endl;
 }
 
+//测试截取word
+void Test_SubWord()
+{
+    std::string str = "0001∩15444";
+    std::string w1, w2;
+    find_w12_from_w(str, w1, w2);
+    std::cout << w1 << " " << w2 << std::endl;
+
+    str = "000115444";
+    find_w12_from_w(str, w1, w2);
+}
+
 //测试permutation
 void Test_Permutation()
 {
@@ -64,9 +76,9 @@ void Test_Permutation2()
 void Test_FindConversionKey()
 {
     int size = 4;
-    std::vector<int> kpa{3,1,2,0};
-    std::vector<int> kpb{2,3,1,0};
-    std::vector<int> expect{2,0,1,3};
+    std::vector<int> kpa{3, 1, 2, 0};
+    std::vector<int> kpb{2, 3, 1, 0};
+    std::vector<int> expect{2, 0, 1, 3};
     std::vector<int> ret = Find_CK(size, kpa, kpb);
     for (size_t i = 0; i < ret.size(); i++)
     {
@@ -141,6 +153,34 @@ void Test_Pr_ED()
     std::cout << std::endl;
 }
 
+//测试PR_Enc和Pr_dec，测试m数组为空情况
+void Test_Pr_ED_NUL()
+{
+    std::vector<std::string> key{"01010", "10101", "11100"};
+    std::vector<std::string> w{"name", "age"};
+    std::vector<std::string> m;
+    int ctr = 20, len = 0;
+
+    int s = m.size(), n = s + 1;
+    std::vector<std::string> c(n);
+    Pr_Enc(key, w, m, ctr, len, c);
+    std::cout << "Pr_Enc:" << std::endl;
+    for (size_t i = 0; i < n; i++)
+    {
+        std::cout << c[i] << " ";
+    }
+    std::cout << std::endl;
+
+    std::vector<std::string> mm(s);
+    Pr_Dec(key, w, c, ctr, len, mm);
+    std::cout << "Pr_Dec:" << std::endl;
+    for (size_t i = 0; i < s; i++)
+    {
+        std::cout << mm[i] << " ";
+    }
+    std::cout << std::endl;
+}
+
 //测试RG和RE
 void Test_RG_RE()
 {
@@ -172,15 +212,61 @@ void Test_RG_RE()
     std::cout << std::endl;
 }
 
+//测试Pr-filter
+void Test_Pr_filter()
+{
+    // setup
+    std::map<std::string, std::vector<std::string>> MM = {
+        {"name∩age", std::vector<std::string>{"id1", "id2", "id4"}},
+        {"name∩sex", std::vector<std::string>{"id2"}},
+        {"name∩old", std::vector<std::string>{"id2"}},
+        {"name∩address", std::vector<std::string>{"id4"}},
+        {"age∩sex", std::vector<std::string>{"id2", "id3"}},
+        {"age∩old", std::vector<std::string>{"id2", "id3"}},
+        {"age∩address", std::vector<std::string>{"id3", "id4"}},
+        {"sex∩old", std::vector<std::string>{"id2", "id3"}},
+        {"sex∩address", std::vector<std::string>{"id3", "id4"}},
+        {"old∩address", std::vector<std::string>{"id3"}},
+    };
+    pr_filter_setup_param setup_param;
+    setup_param.lambda = 5;
+    setup_param.mu = 10;
+    setup_param.MM = MM;
+    pr_filter_setup_res setup_res;
+    PR_Filter_Setup(setup_param, setup_res);
+
+    // token
+    pr_filter_token_param token_param;
+    token_param.len = 3;
+    token_param.s = 3;
+    token_param.mk = setup_res.mk;
+    token_param.words = std::vector<std::string>{"name", "age", "sex","old","sex"};
+    pr_filter_token_res token_res;
+    PR_Filter_Token(token_param, token_res);
+
+    // search
+    pr_filter_search_param search_param;
+    pr_filter_search_res search_res;
+    PR_Filter_Search(search_param, search_res);
+
+    // resolve
+    pr_filter_resolve_param resolve_param;
+    std::vector<std::string> resolve_res;
+    PR_Filter_Resolve(resolve_param, resolve_res);
+}
+
 int main()
 {
     // Test_GenKey();
+    // Test_SubWord();
     // Test_Permutation();
     // Test_Permutation2();
     // Test_FindConversionKey();
     // Test_PGen();
     // Test_AONTH_DAONTH();
     // Test_Pr_ED();
-    Test_RG_RE();
+    // Test_Pr_ED_NUL();
+    // Test_RG_RE();
+    Test_Pr_filter();
     return 0;
 }
