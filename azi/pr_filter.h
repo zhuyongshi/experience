@@ -2,9 +2,6 @@
 #include <time.h>
 #include <cmath>
 #include <bits/stdc++.h>
-// #include <std::string>
-// #include <std::vector>
-
 #include <crypto++/aes.h>
 #include <cryptopp/filters.h>
 #include <cryptopp/modes.h>
@@ -14,38 +11,12 @@
 #include <cryptopp/hex.h>
 #include <cryptopp/base64.h>
 #include <cryptopp/files.h>
+#include "ecsse_util.h"
 
 using namespace CryptoPP;
 
-// hash函数 带盐值
-std::string H1(const std::string message, std::string key);
-
-// hash函数，不带盐值
-std::string H(const std::string message);
-
-// hash函数，输出Int
-int hash_k_int(const std::string message, const std::string key);
-
-// byte转Int
-int bytesToInt(byte *bytes, int size);
-
-// Int转byte
-byte *IntToBytes(int num);
-
-// 整数转二进制
-std::string toBinary(int n);
-
-// 填充算法: 后面填0
-std::string padding(std::string s, int len);
-
-// 产生随机数密钥串，类型为byte
-int gen_key(byte *key1);
-
-// 产生随机数密钥串，类型为string
-std::string Gen_RandKey(int len);
-
-// string 异或
-std::string Xor(const std::string s1, const std::string s2);
+//从word中获取w1和w2
+int find_w12_from_w(std::string word, std::string &w1, std::string &w2);
 
 // 排列加密算法: 将pin按kep顺序排列，pin为string
 std::string Permutation(int n, std::vector<int> kep, std::string pin);
@@ -69,17 +40,101 @@ int ANOTH(int ctr, int len, std::vector<std::string> m, std::vector<std::string>
 
 int D_AONTH(int ctr, std::vector<std::string> mplus, std::vector<std::string> &m);
 
-int Pr_Gen(std::vector<std::string> key, std::vector<std::string> w, int len, int n,
-           std::vector<std::string> &P1, std::vector<std::string> &P2, std::vector<std::string> &P3, std::string &retkey);
+int Pr_Gen(std::vector<std::string> key, std::vector<std::string> w, int len, int n, std::vector<std::string> &P1, std::vector<std::string> &P2, std::vector<std::string> &P3, std::string &retkey);
 
-int Pr_Enc(std::vector<std::string> key, std::vector<std::string> w, std::vector<std::string> m, int ctr, int len,
-           std::vector<std::string> &c);
+int Pr_Enc(std::vector<std::string> key, std::vector<std::string> w, std::vector<std::string> m, int ctr, int len, std::vector<std::string> &c);
 
-int Pr_Dec(std::vector<std::string> key, std::vector<std::string> w, std::vector<std::string> c, int ctr, int len,
-           std::vector<std::string> &m);
+int Pr_Dec(std::vector<std::string> key, std::vector<std::string> w, std::vector<std::string> c, int ctr, int len, std::vector<std::string> &m);
 
-int Pr_ReGen(std::vector<std::string> key, std::vector<std::string> w, int len, int s,
-             std::vector<std::vector<int>> &RetCK, std::vector<std::vector<int>> &RetP2, std::vector<std::string> &RetKeyPhi);
+int Pr_ReGen(std::vector<std::string> key, std::vector<std::string> w, int len, int s, std::vector<std::vector<int>> &RetCK, std::vector<std::vector<int>> &RetP2, std::vector<std::string> &RetKeyPhi);
 
-int Pr_ReEnc(std::vector<std::vector<int>> CK, std::vector<std::vector<int>> P2, std::vector<std::string> KeyPhi, std::vector<std::string> c,
-             std::vector<std::string> &ret_c);
+int Pr_ReEnc(std::vector<std::vector<int>> CK, std::vector<std::vector<int>> P2, std::vector<std::string> KeyPhi, std::vector<std::string> c, std::vector<std::string> &ret_c);
+
+void sEMM_Setup(int lambda, std::map<std::string, std::vector<std::string>> MMp, std::string &mskp, std::map<std::string, std::vector<std::string>> &EMMp);
+
+void sEMM_Token(std::string mskp, std::string w1, std::string w2, std::string &token);
+
+void sEMM_Search(std::string tokp, std::map<std::string, std::vector<std::string>> EMMp, std::vector<std::string> &tags);
+
+typedef struct
+{
+    std::string kx;
+    std::vector<std::vector<int>> CK;
+    std::vector<std::vector<int>> P2;
+    std::vector<std::string> KeyPhi;
+} key_re_d;
+
+typedef struct
+{
+    std::string kv;
+    std::string kt;
+    std::string kp;
+    std::string kx;
+    std::string kxor;
+    std::string mskp;
+} MK;
+
+typedef struct
+{
+    std::map<std::string, std::vector<std::string>> EMMp;
+    std::multiset<std::string> Xset;
+} EMM;
+
+typedef struct
+{
+    int lambda;
+    int mu;
+    std::map<std::string, std::vector<std::string>> MM;
+} pr_filter_setup_param;
+
+typedef struct
+{
+    MK mk;
+    EMM emm;
+    std::map<std::string, int> DX;
+} pr_filter_setup_res;
+
+int PR_Filter_Setup(pr_filter_setup_param param, pr_filter_setup_res &res);
+
+typedef struct
+{
+    MK mk;
+    std::vector<std::string> words;
+    int len;
+    int s;
+} pr_filter_token_param;
+
+typedef struct
+{
+    std::string tokp;
+    std::string k_w12_enc;
+    std::vector<key_re_d> tokp_vec;
+} pr_filter_token_res;
+
+int PR_Filter_Token(pr_filter_token_param param, pr_filter_token_res &res);
+
+typedef struct
+{
+    pr_filter_token_res tokq;
+    EMM emm;
+} pr_filter_search_param;
+
+typedef struct
+{
+    std::vector<std::string> ans;
+    std::vector<std::string> tags_k;
+} pr_filter_search_res;
+
+int PR_Filter_Search(pr_filter_search_param param, pr_filter_search_res &res);
+
+typedef struct
+{
+    std::string w1;
+    std::string wn;
+    MK mk;
+    std::map<std::string, int> DX;
+    std::vector<std::string> c;
+    std::vector<bool> vaild;
+} pr_filter_resolve_param;
+
+int PR_Filter_Resolve(pr_filter_resolve_param param, std::vector<std::string> &res);
