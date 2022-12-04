@@ -134,7 +134,7 @@ namespace ECSSE
             }
             ID = result_set;
         }
-            // server RPC
+        // server RPC
         Status search(ServerContext * context, const SearchRequestMessage *request,
                           ServerWriter<SearchReply> *writer)
         {
@@ -192,7 +192,12 @@ namespace ECSSE
             {
                 l = request.l();
                 e = request.e();
-                store(ss_db, l, e);
+                int status = store(ss_db, l, e);
+                if (status != 0)
+                {
+                    response->set_status(false);
+                    return Status::CANCELLED;
+                }
             }
             // TODO 读取之后需要解锁
             response->set_status(true);

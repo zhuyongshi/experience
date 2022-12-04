@@ -52,7 +52,6 @@ int get_new_kwarr(std::unordered_set<std::string> &old_kwset,std::vector<std::st
 }
 
 
-
 int get_result(std::unordered_map<std::string,std::vector<std::string>>& MM,std::multimap<int,std::string,std::greater<int>>& old_result){
     int max_D_num = 0;
     for(auto kw : fullkw){
@@ -74,13 +73,13 @@ int get_l(std::unordered_map<std::string,std::vector<std::string>>& order_MM){
 
 int main(){
     srand(time(0));
-    std::string kw_path = "/home/zws/Desktop/experience/test/key.txt";
+    std::string kw_path = "/home/zws/Desktop/experience/test/01_05/0_key_01.txt";
     get_w_array(kw_path,fullkw);
     int n;
     int m;
     int l;
     std::unordered_map<std::string,std::vector<std::string>> MM;
-    std::string MM_path = "/home/zws/Desktop/experience/test/inverted.txt";
+    std::string MM_path = "/home/zws/Desktop/experience/test/01_05/0_inverted_01.txt";
     get_MM(MM_path,MM);
     std::multimap<int,std::string,std::greater<int>> old_result;
     n = get_result(MM,old_result);
@@ -92,33 +91,33 @@ int main(){
     }
     os.close();
 
-    for (std::multimap<int, std::string>::iterator it = old_result.begin(); it != old_result.end(); it++){
-        os<<it->first<<" "<<it->second<<std::endl;
-    }
+    // for (std::multimap<int, std::string>::iterator it = old_result.begin(); it != old_result.end(); it++){
+    //     os<<it->first<<" "<<it->second<<std::endl;
+    // }
 
-    std::unordered_map<std::string,std::vector<std::string>> order_MM;
-    std::string order_MM_path = "/home/zws/Desktop/experience/test/ans_01";
-    get_MM(order_MM_path,order_MM);
-    l = get_l(order_MM);
-    std::cout<<"l="<<l<<std::endl;
+    // std::unordered_map<std::string,std::vector<std::string>> order_MM;
+    // std::string order_MM_path = "/home/zws/Desktop/experience/test/ans_01";
+    // get_MM(order_MM_path,order_MM);
+    // l = get_l(order_MM);
+    // std::cout<<"l="<<l<<std::endl;
 
 
-    std::ofstream	os2("/home/zws/Desktop/experience/test/new_order_MM.txt",std::ios::app);
-    for(auto i : order_MM){
-        std::unordered_set<std::string> old_kwset(i.second.begin(),i.second.end());
-        int old_length = i.second.size();
-        std::vector<std::string> new_kwarr(l);
-        //先把旧的关键字赋给新的关键字集合
-        for(int j=0;j<old_length;j++){
-            new_kwarr[j] = i.second[j];
-        }
-        //再增加新的关键字，使得关键字集合一共包含l个元素
-        os2<<i.first;
-        get_new_kwarr(old_kwset,new_kwarr,l,old_length);
-        for(auto j :new_kwarr) os2<<" "<<j;
-        os2<<"\n";
-    }
-    os2.close();
+    // std::ofstream	os2("/home/zws/Desktop/experience/test/new_order_MM.txt",std::ios::app);
+    // for(auto i : order_MM){
+    //     std::unordered_set<std::string> old_kwset(i.second.begin(),i.second.end());
+    //     int old_length = i.second.size();
+    //     std::vector<std::string> new_kwarr(l);
+    //     //先把旧的关键字赋给新的关键字集合
+    //     for(int j=0;j<old_length;j++){
+    //         new_kwarr[j] = i.second[j];
+    //     }
+    //     //再增加新的关键字，使得关键字集合一共包含l个元素
+    //     os2<<i.first;
+    //     get_new_kwarr(old_kwset,new_kwarr,l,old_length);
+    //     for(auto j :new_kwarr) os2<<" "<<j;
+    //     os2<<"\n";
+    // }
+    // os2.close();
 
     
 

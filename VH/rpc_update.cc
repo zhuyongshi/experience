@@ -11,19 +11,19 @@
 
 int main(int argc, char **argv)
 {
-    if (argc < 6)
+    if (argc < 9)
     {
         std::cerr << "参数个数小于6个" << std::endl;
         exit(-1);
     } 
-    size_t thread_num = atoi(argv[3]);
-    //不同的数据集对应着不同的n、l
-    int n = atoi(argv[6]);
-    int l = atoi(argv[7]);
+    size_t thread_num = atoi(argv[8]);
+    //不同的数据集对应着不同的l、p
+    int l = atoi(argv[6]);
+    int p = atoi(argv[7]);
     std::string MM_st_path=argv[2];
     std::string order_MM_path = argv[3];
     int update_num = atoi(argv[5]);
-    VH::Client client(grpc::CreateChannel("127.0.0.1:50051", grpc::InsecureChannelCredentials()), std::string(argv[1]),MM_st_path,n,l);
+    VH::Client client(grpc::CreateChannel("127.0.0.1:50051", grpc::InsecureChannelCredentials()), std::string(argv[1]),MM_st_path,l,p);
     std::cout << "取order_map!" << std::endl;
     std::unordered_map<std::string,std::vector<std::string>> order_MM;
     VH::get_MM(order_MM_path,order_MM);
@@ -49,5 +49,6 @@ int main(int argc, char **argv)
 
 //取数据进行update
 /*
-    ./rpc_update [kw_path] [MM_st_path] [order_MM_path] [stash_path.txt] [update_num] [n] [l] [thread_num]
+        0           1           2           3               4               5          6   7       8
+    ./rpc_update [kw_path] [MM_st_path] [order_MM_path] [stash_path.txt] [update_num] [l] [p] [thread_num]
 */

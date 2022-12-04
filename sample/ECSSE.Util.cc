@@ -19,7 +19,7 @@ namespace ECSSE
         std::string salt = "01";
         SHA256().CalculateDigest(buf, (byte *)((message + salt).c_str()), message.length() + salt.length());
         return std::string((const char *)buf, (size_t)SHA256::DIGESTSIZE);
-    }
+    } 
 
     std::string Util::H2(const std::string message)
     {
@@ -138,6 +138,7 @@ namespace ECSSE
         }
         std::cout<<std::endl;
     }
+
 
 
     std::string Util::str2hex(const std::string &input)

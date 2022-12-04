@@ -18,7 +18,7 @@ namespace ECSSE
 		//std::ifstream myfile("/home/helen/sample/dataset/small.txt",std::ios::in);
         //std::ifstream myfile("/home/helen/sample/dataset/medium.txt",std::ios::in);
         //std::ifstream myfile("/home/helen/sample/dataset/big.txt",std::ios::in);
-        std::ifstream myfile("/home/helen/Desktop/sse/dataset/small.txt",std::ios::in);
+        std::ifstream myfile("/home/zws/Desktop/experience/sample/1.txt",std::ios::in);
         //std::ifstream myfile("/home/helen/Desktop/sse/dataset/medium.txt",std::ios::in);
         //std::ifstream myfile("/home/helen/Desktop/sse/dataset/big.txt",std::ios::in);
         //std::ifstream myfile("/home/helen/Desktop/sse/dataset/update.txt",std::ios::in);

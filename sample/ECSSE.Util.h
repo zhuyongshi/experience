@@ -39,7 +39,7 @@ using namespace CryptoPP;
 // 用来生成kw
 extern byte k_s[17];
 extern byte iv_s[17];
-
+ 
 extern int max_keyword_length;
 extern int max_nodes_number;
 

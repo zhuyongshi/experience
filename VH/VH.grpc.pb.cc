@@ -33,24 +33,24 @@ std::unique_ptr< RPC::Stub> RPC::NewStub(const std::shared_ptr< ::grpc::ChannelI
 }
 
 RPC::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options)
-  : channel_(channel), rpcmethod_search_(RPC_method_names[0], options.suffix_for_stats(),::grpc::internal::RpcMethod::BIDI_STREAMING, channel)
+  : channel_(channel), rpcmethod_search_(RPC_method_names[0], options.suffix_for_stats(),::grpc::internal::RpcMethod::SERVER_STREAMING, channel)
   , rpcmethod_update_(RPC_method_names[1], options.suffix_for_stats(),::grpc::internal::RpcMethod::CLIENT_STREAMING, channel)
   {}
 
-::grpc::ClientReaderWriter< ::VH::SearchRequestMessage, ::VH::SearchReply>* RPC::Stub::searchRaw(::grpc::ClientContext* context) {
-  return ::grpc::internal::ClientReaderWriterFactory< ::VH::SearchRequestMessage, ::VH::SearchReply>::Create(channel_.get(), rpcmethod_search_, context);
+::grpc::ClientReader< ::VH::SearchReply>* RPC::Stub::searchRaw(::grpc::ClientContext* context, const ::VH::SearchRequestMessage& request) {
+  return ::grpc::internal::ClientReaderFactory< ::VH::SearchReply>::Create(channel_.get(), rpcmethod_search_, context, request);
 }
 
-void RPC::Stub::async::search(::grpc::ClientContext* context, ::grpc::ClientBidiReactor< ::VH::SearchRequestMessage,::VH::SearchReply>* reactor) {
-  ::grpc::internal::ClientCallbackReaderWriterFactory< ::VH::SearchRequestMessage,::VH::SearchReply>::Create(stub_->channel_.get(), stub_->rpcmethod_search_, context, reactor);
+void RPC::Stub::async::search(::grpc::ClientContext* context, const ::VH::SearchRequestMessage* request, ::grpc::ClientReadReactor< ::VH::SearchReply>* reactor) {
+  ::grpc::internal::ClientCallbackReaderFactory< ::VH::SearchReply>::Create(stub_->channel_.get(), stub_->rpcmethod_search_, context, request, reactor);
 }
 
-::grpc::ClientAsyncReaderWriter< ::VH::SearchRequestMessage, ::VH::SearchReply>* RPC::Stub::AsyncsearchRaw(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq, void* tag) {
-  return ::grpc::internal::ClientAsyncReaderWriterFactory< ::VH::SearchRequestMessage, ::VH::SearchReply>::Create(channel_.get(), cq, rpcmethod_search_, context, true, tag);
+::grpc::ClientAsyncReader< ::VH::SearchReply>* RPC::Stub::AsyncsearchRaw(::grpc::ClientContext* context, const ::VH::SearchRequestMessage& request, ::grpc::CompletionQueue* cq, void* tag) {
+  return ::grpc::internal::ClientAsyncReaderFactory< ::VH::SearchReply>::Create(channel_.get(), cq, rpcmethod_search_, context, request, true, tag);
 }
 
-::grpc::ClientAsyncReaderWriter< ::VH::SearchRequestMessage, ::VH::SearchReply>* RPC::Stub::PrepareAsyncsearchRaw(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncReaderWriterFactory< ::VH::SearchRequestMessage, ::VH::SearchReply>::Create(channel_.get(), cq, rpcmethod_search_, context, false, nullptr);
+::grpc::ClientAsyncReader< ::VH::SearchReply>* RPC::Stub::PrepareAsyncsearchRaw(::grpc::ClientContext* context, const ::VH::SearchRequestMessage& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncReaderFactory< ::VH::SearchReply>::Create(channel_.get(), cq, rpcmethod_search_, context, request, false, nullptr);
 }
 
 ::grpc::ClientWriter< ::VH::UpdateRequestMessage>* RPC::Stub::updateRaw(::grpc::ClientContext* context, ::VH::ExecuteStatus* response) {
@@ -72,13 +72,13 @@ void RPC::Stub::async::update(::grpc::ClientContext* context, ::VH::ExecuteStatu
 RPC::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       RPC_method_names[0],
-      ::grpc::internal::RpcMethod::BIDI_STREAMING,
-      new ::grpc::internal::BidiStreamingHandler< RPC::Service, ::VH::SearchRequestMessage, ::VH::SearchReply>(
+      ::grpc::internal::RpcMethod::SERVER_STREAMING,
+      new ::grpc::internal::ServerStreamingHandler< RPC::Service, ::VH::SearchRequestMessage, ::VH::SearchReply>(
           [](RPC::Service* service,
              ::grpc::ServerContext* ctx,
-             ::grpc::ServerReaderWriter<::VH::SearchReply,
-             ::VH::SearchRequestMessage>* stream) {
-               return service->search(ctx, stream);
+             const ::VH::SearchRequestMessage* req,
+             ::grpc::ServerWriter<::VH::SearchReply>* writer) {
+               return service->search(ctx, req, writer);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       RPC_method_names[1],
@@ -95,9 +95,10 @@ RPC::Service::Service() {
 RPC::Service::~Service() {
 }
 
-::grpc::Status RPC::Service::search(::grpc::ServerContext* context, ::grpc::ServerReaderWriter< ::VH::SearchReply, ::VH::SearchRequestMessage>* stream) {
+::grpc::Status RPC::Service::search(::grpc::ServerContext* context, const ::VH::SearchRequestMessage* request, ::grpc::ServerWriter< ::VH::SearchReply>* writer) {
   (void) context;
-  (void) stream;
+  (void) request;
+  (void) writer;
   return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
 }
 

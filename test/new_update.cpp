@@ -107,6 +107,7 @@ int main(){
     std::string order_MM_path = "/home/zws/Desktop/experience/test/01_04/0_ans";
     get_MM(order_MM_path,order_MM);
     l = get_l(order_MM);
+    l = 0.06 * fullkw.size();
     std::cout<<"l="<<l<<std::endl;
 
     int sum = 0;

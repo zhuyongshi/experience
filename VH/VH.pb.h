@@ -366,30 +366,40 @@ class SearchRequestMessage final :
   // accessors -------------------------------------------------------
 
   enum : int {
-    kStFieldNumber = 1,
-    kUcFieldNumber = 2,
+    kXFieldNumber = 1,
+    kQFFieldNumber = 2,
+    kCntFieldNumber = 3,
   };
-  // bytes st = 1;
-  void clear_st();
-  const std::string& st() const;
+  // bytes x = 1;
+  void clear_x();
+  const std::string& x() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
-  void set_st(ArgT0&& arg0, ArgT... args);
-  std::string* mutable_st();
-  PROTOBUF_NODISCARD std::string* release_st();
-  void set_allocated_st(std::string* st);
+  void set_x(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_x();
+  PROTOBUF_NODISCARD std::string* release_x();
+  void set_allocated_x(std::string* x);
   private:
-  const std::string& _internal_st() const;
-  inline PROTOBUF_ALWAYS_INLINE void _internal_set_st(const std::string& value);
-  std::string* _internal_mutable_st();
+  const std::string& _internal_x() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_x(const std::string& value);
+  std::string* _internal_mutable_x();
   public:
 
-  // uint64 uc = 2;
-  void clear_uc();
-  uint64_t uc() const;
-  void set_uc(uint64_t value);
+  // uint64 q_f = 2;
+  void clear_q_f();
+  uint64_t q_f() const;
+  void set_q_f(uint64_t value);
   private:
-  uint64_t _internal_uc() const;
-  void _internal_set_uc(uint64_t value);
+  uint64_t _internal_q_f() const;
+  void _internal_set_q_f(uint64_t value);
+  public:
+
+  // uint64 cnt = 3;
+  void clear_cnt();
+  uint64_t cnt() const;
+  void set_cnt(uint64_t value);
+  private:
+  uint64_t _internal_cnt() const;
+  void _internal_set_cnt(uint64_t value);
   public:
 
   // @@protoc_insertion_point(class_scope:VH.SearchRequestMessage)
@@ -399,8 +409,9 @@ class SearchRequestMessage final :
   template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
   typedef void InternalArenaConstructable_;
   typedef void DestructorSkippable_;
-  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr st_;
-  uint64_t uc_;
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr x_;
+  uint64_t q_f_;
+  uint64_t cnt_;
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   friend struct ::TableStruct_VH_2eproto;
 };
@@ -818,75 +829,95 @@ inline void UpdateRequestMessage::set_allocated_e(std::string* e) {
 
 // SearchRequestMessage
 
-// bytes st = 1;
-inline void SearchRequestMessage::clear_st() {
-  st_.ClearToEmpty();
+// bytes x = 1;
+inline void SearchRequestMessage::clear_x() {
+  x_.ClearToEmpty();
 }
-inline const std::string& SearchRequestMessage::st() const {
-  // @@protoc_insertion_point(field_get:VH.SearchRequestMessage.st)
-  return _internal_st();
+inline const std::string& SearchRequestMessage::x() const {
+  // @@protoc_insertion_point(field_get:VH.SearchRequestMessage.x)
+  return _internal_x();
 }
 template <typename ArgT0, typename... ArgT>
 inline PROTOBUF_ALWAYS_INLINE
-void SearchRequestMessage::set_st(ArgT0&& arg0, ArgT... args) {
+void SearchRequestMessage::set_x(ArgT0&& arg0, ArgT... args) {
  
- st_.SetBytes(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
-  // @@protoc_insertion_point(field_set:VH.SearchRequestMessage.st)
+ x_.SetBytes(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:VH.SearchRequestMessage.x)
 }
-inline std::string* SearchRequestMessage::mutable_st() {
-  std::string* _s = _internal_mutable_st();
-  // @@protoc_insertion_point(field_mutable:VH.SearchRequestMessage.st)
+inline std::string* SearchRequestMessage::mutable_x() {
+  std::string* _s = _internal_mutable_x();
+  // @@protoc_insertion_point(field_mutable:VH.SearchRequestMessage.x)
   return _s;
 }
-inline const std::string& SearchRequestMessage::_internal_st() const {
-  return st_.Get();
+inline const std::string& SearchRequestMessage::_internal_x() const {
+  return x_.Get();
 }
-inline void SearchRequestMessage::_internal_set_st(const std::string& value) {
+inline void SearchRequestMessage::_internal_set_x(const std::string& value) {
   
-  st_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, value, GetArenaForAllocation());
+  x_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, value, GetArenaForAllocation());
 }
-inline std::string* SearchRequestMessage::_internal_mutable_st() {
+inline std::string* SearchRequestMessage::_internal_mutable_x() {
   
-  return st_.Mutable(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, GetArenaForAllocation());
+  return x_.Mutable(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, GetArenaForAllocation());
 }
-inline std::string* SearchRequestMessage::release_st() {
-  // @@protoc_insertion_point(field_release:VH.SearchRequestMessage.st)
-  return st_.Release(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArenaForAllocation());
+inline std::string* SearchRequestMessage::release_x() {
+  // @@protoc_insertion_point(field_release:VH.SearchRequestMessage.x)
+  return x_.Release(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArenaForAllocation());
 }
-inline void SearchRequestMessage::set_allocated_st(std::string* st) {
-  if (st != nullptr) {
+inline void SearchRequestMessage::set_allocated_x(std::string* x) {
+  if (x != nullptr) {
     
   } else {
     
   }
-  st_.SetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), st,
+  x_.SetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), x,
       GetArenaForAllocation());
 #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  if (st_.IsDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited())) {
-    st_.Set(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), "", GetArenaForAllocation());
+  if (x_.IsDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited())) {
+    x_.Set(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), "", GetArenaForAllocation());
   }
 #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  // @@protoc_insertion_point(field_set_allocated:VH.SearchRequestMessage.st)
+  // @@protoc_insertion_point(field_set_allocated:VH.SearchRequestMessage.x)
 }
 
-// uint64 uc = 2;
-inline void SearchRequestMessage::clear_uc() {
-  uc_ = uint64_t{0u};
+// uint64 q_f = 2;
+inline void SearchRequestMessage::clear_q_f() {
+  q_f_ = uint64_t{0u};
 }
-inline uint64_t SearchRequestMessage::_internal_uc() const {
-  return uc_;
+inline uint64_t SearchRequestMessage::_internal_q_f() const {
+  return q_f_;
 }
-inline uint64_t SearchRequestMessage::uc() const {
-  // @@protoc_insertion_point(field_get:VH.SearchRequestMessage.uc)
-  return _internal_uc();
+inline uint64_t SearchRequestMessage::q_f() const {
+  // @@protoc_insertion_point(field_get:VH.SearchRequestMessage.q_f)
+  return _internal_q_f();
 }
-inline void SearchRequestMessage::_internal_set_uc(uint64_t value) {
+inline void SearchRequestMessage::_internal_set_q_f(uint64_t value) {
   
-  uc_ = value;
+  q_f_ = value;
 }
-inline void SearchRequestMessage::set_uc(uint64_t value) {
-  _internal_set_uc(value);
-  // @@protoc_insertion_point(field_set:VH.SearchRequestMessage.uc)
+inline void SearchRequestMessage::set_q_f(uint64_t value) {
+  _internal_set_q_f(value);
+  // @@protoc_insertion_point(field_set:VH.SearchRequestMessage.q_f)
+}
+
+// uint64 cnt = 3;
+inline void SearchRequestMessage::clear_cnt() {
+  cnt_ = uint64_t{0u};
+}
+inline uint64_t SearchRequestMessage::_internal_cnt() const {
+  return cnt_;
+}
+inline uint64_t SearchRequestMessage::cnt() const {
+  // @@protoc_insertion_point(field_get:VH.SearchRequestMessage.cnt)
+  return _internal_cnt();
+}
+inline void SearchRequestMessage::_internal_set_cnt(uint64_t value) {
+  
+  cnt_ = value;
+}
+inline void SearchRequestMessage::set_cnt(uint64_t value) {
+  _internal_set_cnt(value);
+  // @@protoc_insertion_point(field_set:VH.SearchRequestMessage.cnt)
 }
 
 // -------------------------------------------------------------------

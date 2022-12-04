@@ -3,9 +3,9 @@ from fileinput import filename
 
 word_idx_dict = defaultdict(set)
 key = set()
-keyset = open('/home/zws/Desktop/test/key_01.txt','w')
-inverted = open('/home/zws/Desktop/test/inverted_01.txt','w')
-with open('/home/zws/Desktop/test/ans_01',"r") as f:
+keyset = open('/home/zws/Desktop/experience/test/key.txt','w')
+inverted = open('/home/zws/Desktop/experience/test/inverted.txt','w')
+with open('/home/zws/Desktop/experience/test/ans_01',"r") as f:
     for line in f.readlines():
         line = line.split(" ")
         line[-1]=line[-1][:-1]

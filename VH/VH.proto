@@ -11,7 +11,7 @@ package VH;
 service RPC {
 
 // Search
-rpc search (stream SearchRequestMessage) returns (stream SearchReply) {}
+rpc search (SearchRequestMessage) returns (stream SearchReply) {}
 
 // Update
 rpc update (stream UpdateRequestMessage) returns ( ExecuteStatus ) {}
@@ -28,8 +28,9 @@ message UpdateRequestMessage
 
 message SearchRequestMessage
 {
-    bytes st = 1;
-	uint64 uc = 2; 
+    bytes x = 1;
+	uint64 q_f = 2; 
+    uint64 cnt = 3;
 }
 
 

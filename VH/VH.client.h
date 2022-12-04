@@ -33,12 +33,12 @@ namespace VH{
 
     class Client{
         public:
-        Client(std::shared_ptr<Channel> channel,std::string kw_path,std::string MM_st_path,int p_n,int p_l) : stub_(RPC::NewStub(channel))
+        Client(std::shared_ptr<Channel> channel,std::string kw_path,std::string MM_st_path,int p_l,int p_p) : stub_(RPC::NewStub(channel))
         {
             srand(time(0)); 
             get_w_array(kw_path,fullkw);
+            p = p_p;
             l = p_l;
-            n = p_n;
             MM_st_txt_path = MM_st_path;
             //如果这个文件不存在的话是没办法读MM_st的
             //即 setup 时调用构造函数构造client对象的时候，会走下面的else
@@ -72,12 +72,12 @@ namespace VH{
             std::cout<<"setup update data to server"<<std::endl;
             for(auto kw : fullkw){
                 std::map<std::string,std::string> DX;
-                for(int i=0;i<n;i++){
+                for(int i=0;i<l;i++){
                     std::string x = Util::H_key(MM_st[kw].key,kw); //保护关键字
                     std::string y = Util::H_key(x,std::to_string(i));  //产生加密索引
                     std::string e_value; 
                     char op = '2'; //op取值 0：app 1: del 2:full
-                    Util::encrypt(K_enc,iv,std::to_string(i)+','+op,e_value); 
+                    Util::encrypt(K_enc,iv,"*"+op,e_value); 
                     DX[y] = e_value;
                 }
                 std::vector<UpdateRequestMessage> update_list;
@@ -94,17 +94,17 @@ namespace VH{
                               std::map<std::string,std::queue<std::pair<std::string,std::string>>> &stash,
                               std::string op,int update_num)
         {
-            std::vector<std::string> random_kw(l);
-            gen_random_kw_array(random_kw,l);
-            std::vector<std::pair<std::string,std::string>> up_op_id(l);
+            std::vector<std::string> random_kw(p);
+            gen_random_kw_array(random_kw,p);
+            std::vector<std::pair<std::string,std::string>> up_op_id(p);
             write_stash_and_gen_up(random_kw,kw_arr,id,op,stash,up_op_id);
             int i=0;
             std::map<std::string,std::string> DX;
             for(auto kw : random_kw){
-                if(MM_st[kw].query_first+MM_st[kw].cnt_true+1>n) std::cout<<"目前更新了:"<<update_num<<"个文档"<<std::endl;
-                if(MM_st[kw].cnt_true > n) std::cout<<"需要重新构建数据库"<<std::endl;
+                if(MM_st[kw].query_first+MM_st[kw].cnt_true+1>l) std::cout<<"目前更新了:"<<update_num<<"个文档"<<std::endl;
+                if(MM_st[kw].cnt_true > l) std::cout<<"需要重新构建数据库"<<std::endl;
                 std::string x = Util::H_key(MM_st[kw].key,kw); //保护关键字
-                std::string y = Util::H_key(x,std::to_string(MM_st[kw].query_first+n+1));  //产生加密索引
+                std::string y = Util::H_key(x,std::to_string(MM_st[kw].query_first+l+1));  //产生加密索引
                 std::string e_value; 
                 Util::encrypt(K_enc,iv,up_op_id[i++].first+','+up_op_id[i++].second,e_value);
                 MM_st[kw].query_first++;
@@ -147,7 +147,10 @@ namespace VH{
                     up_op_id.push_back(stash[random_kw[i]].front());
                     stash[random_kw[i]].pop();
                 }else{
-                    up_op_id.push_back(temp_op_id);
+                    if(set_kw.find(random_kw[i])!=set_kw.end())
+                        up_op_id.push_back(temp_op_id);
+                    else
+                        up_op_id.push_back({temp_op_id.first,temp_op_id.second+'*'});
                 }
             }
         }        
@@ -236,14 +239,85 @@ namespace VH{
             return status;
         }
 
+        std::string search(const std::string kw,std::map<std::string,std::queue<std::pair<std::string,std::string>>> &stash){
+            std::string x = Util::H_key(MM_st[kw].key,kw); 
+            SearchRequestMessage request;
+            request.set_cnt(l);
+            request.set_q_f(MM_st[kw].query_first);
+            request.set_x(x);
+            ClientContext context;
+            std::unique_ptr<ClientReaderInterface<SearchReply>> reader = stub_->search(&context, request);
+           //这里获得了从server端返回的真实且经过op操作以后的id列表。
+           //读取返回列表：
+            std::unordered_set<std::string> ID;
+            SearchReply reply;
+            MM_st[kw].cnt_true = 0;
+            while(reader->Read(&reply)){
+                std::string op_id;
+                Util::descrypt(K_enc,iv,reply.ind(),op_id);
+                if(op_id.find('*')<0){
+                    //找不到‘*’代表是真的
+                    int i = op_id.find(',');
+                    std::string id = op_id.substr(i+1,op_id.size()) ;
+                    std::string op = op_id.substr(0,i);
+                    if(op == "0")  ID.insert(id);
+                    else if(op == "1"){
+                        if(ID.find(id) != ID.end())  ID.erase(id);
+                    }
+                }
+            }
+            
+            //从stash中把跟kw相关的取出来。
+            while(stash[kw].size()!=0){
+                std::pair<std::string,std::string> temp = stash[kw].front();;
+                if(temp.first == "0")   ID.insert(temp.second);
+
+                else if(temp.second == "1"){
+                    if(ID.find(temp.second) != ID.end())  ID.erase(temp.second);
+                }
+                stash[kw].pop();
+            }
+            MM_st[kw].key = kw + std::to_string(rand());
+            MM_st[kw].cnt_true = ID.size();
+            MM_st[kw].query_first = 0;
+            re_update(ID,kw);
+        }
+
+        void re_update(std::unordered_set<std::string> ID,const std::string kw){
+            std::map<std::string,std::string> DX;
+            for(int i=0;i<l-ID.size();i++){
+                std::string x = Util::H_key(MM_st[kw].key,kw); //保护关键字
+                std::string y = Util::H_key(x,std::to_string(i));  //产生加密索引
+                std::string e_value; 
+                char op = '2'; //op取值 0：app 1: del 2:full
+                Util::encrypt(K_enc,iv,"*"+op,e_value); 
+                DX[y] = e_value;
+            }
+            int i=l-ID.size();
+            for(auto j : ID){
+                std::string x = Util::H_key(MM_st[kw].key,kw); //保护关键字
+                std::string y = Util::H_key(x,std::to_string(i));  //产生加密索引
+                std::string e_value; 
+                Util::encrypt(K_enc,iv,"0,"+j,e_value);
+                DX[y] = e_value;
+                i++;
+            }
+            std::vector<UpdateRequestMessage> update_list;
+            gen_update_list(update_list,DX);
+            std::cout<<"re_update_list.size = "<<update_list.size()<<std::endl;
+            std::cout<<"re_update  data to server"<<std::endl;
+            Status status = update(update_list);
+            std::cout<<"re_update finished"<<std::endl;
+        }         
+
 
 
         private:
             std::map<std::string, st> MM_st; //client存的状态表
             std::vector<std::string> fullkw; //关键字全集
             std::unique_ptr<RPC::Stub> stub_;
-            int n; 
-            int l;
+            int l; 
+            int p;
             std::string MM_st_txt_path;
     };
 

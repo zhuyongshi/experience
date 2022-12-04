@@ -1,9 +1,8 @@
 import re
 
-
-num=[1146559]   #num数组代表每个文档里的行数，如图所示的左下角红框。
+num=[3137620]   #num数组代表每个文档里的行数，如图所示的左下角红框。
 filename =['/home/zws/Desktop/wikiextractor/extra1/AA/wiki_00']
-outdir =['/home/zws/Desktop/test/ans_01']
+outdir =['/home/zws/Desktop/experience/test/ans_01']
 for r in range(1):
     fx = filename[r]
     nx = num[r]

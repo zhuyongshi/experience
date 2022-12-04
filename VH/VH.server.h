@@ -94,7 +94,26 @@ namespace VH{
                 return Status::OK;
             }   
 
-            
+            Status search(ServerContext * context, const SearchRequestMessage *request,
+                          ServerWriter<SearchReply> *writer)
+            {
+                int q_f = request->q_f();
+                int cnt = request->cnt();
+                std::string l = request->x();
+                std::vector<std::string> Result(cnt);
+                for(int i=q_f,j=0;i<q_f+cnt;++i,++j){
+                    std::string y =  Util::H_key(l,std::to_string(i));
+                    Result[j] = get(ss_db,y);
+                }
+                SearchReply reply;
+                for (auto it:Result)
+                {
+                    reply.set_ind(it);
+                    writer->Write(reply);
+                }
+                std::cout<<"server search end!"<<std::endl;
+                return Status::OK;
+            }
 
 
     };

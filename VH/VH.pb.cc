@@ -32,8 +32,9 @@ struct UpdateRequestMessageDefaultTypeInternal {
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT UpdateRequestMessageDefaultTypeInternal _UpdateRequestMessage_default_instance_;
 constexpr SearchRequestMessage::SearchRequestMessage(
   ::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized)
-  : st_(&::PROTOBUF_NAMESPACE_ID::internal::fixed_address_empty_string)
-  , uc_(uint64_t{0u}){}
+  : x_(&::PROTOBUF_NAMESPACE_ID::internal::fixed_address_empty_string)
+  , q_f_(uint64_t{0u})
+  , cnt_(uint64_t{0u}){}
 struct SearchRequestMessageDefaultTypeInternal {
   constexpr SearchRequestMessageDefaultTypeInternal()
     : _instance(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized{}) {}
@@ -87,8 +88,9 @@ const uint32_t TableStruct_VH_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(proto
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
   ~0u,  // no _inlined_string_donated_
-  PROTOBUF_FIELD_OFFSET(::VH::SearchRequestMessage, st_),
-  PROTOBUF_FIELD_OFFSET(::VH::SearchRequestMessage, uc_),
+  PROTOBUF_FIELD_OFFSET(::VH::SearchRequestMessage, x_),
+  PROTOBUF_FIELD_OFFSET(::VH::SearchRequestMessage, q_f_),
+  PROTOBUF_FIELD_OFFSET(::VH::SearchRequestMessage, cnt_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::VH::SearchReply, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -107,8 +109,8 @@ const uint32_t TableStruct_VH_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(proto
 static const ::PROTOBUF_NAMESPACE_ID::internal::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
   { 0, -1, -1, sizeof(::VH::UpdateRequestMessage)},
   { 8, -1, -1, sizeof(::VH::SearchRequestMessage)},
-  { 16, -1, -1, sizeof(::VH::SearchReply)},
-  { 23, -1, -1, sizeof(::VH::ExecuteStatus)},
+  { 17, -1, -1, sizeof(::VH::SearchReply)},
+  { 24, -1, -1, sizeof(::VH::ExecuteStatus)},
 };
 
 static ::PROTOBUF_NAMESPACE_ID::Message const * const file_default_instances[] = {
@@ -120,17 +122,17 @@ static ::PROTOBUF_NAMESPACE_ID::Message const * const file_default_instances[] =
 
 const char descriptor_table_protodef_VH_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
   "\n\010VH.proto\022\002VH\",\n\024UpdateRequestMessage\022\t"
-  "\n\001l\030\001 \001(\014\022\t\n\001e\030\002 \001(\014\".\n\024SearchRequestMes"
-  "sage\022\n\n\002st\030\001 \001(\014\022\n\n\002uc\030\002 \001(\004\"\032\n\013SearchRe"
-  "ply\022\013\n\003ind\030\001 \001(\014\"\037\n\rExecuteStatus\022\016\n\006sta"
-  "tus\030\001 \001(\0102{\n\003RPC\0229\n\006search\022\030.VH.SearchRe"
-  "questMessage\032\017.VH.SearchReply\"\000(\0010\001\0229\n\006u"
-  "pdate\022\030.VH.UpdateRequestMessage\032\021.VH.Exe"
-  "cuteStatus\"\000(\001b\006proto3"
+  "\n\001l\030\001 \001(\014\022\t\n\001e\030\002 \001(\014\";\n\024SearchRequestMes"
+  "sage\022\t\n\001x\030\001 \001(\014\022\013\n\003q_f\030\002 \001(\004\022\013\n\003cnt\030\003 \001("
+  "\004\"\032\n\013SearchReply\022\013\n\003ind\030\001 \001(\014\"\037\n\rExecute"
+  "Status\022\016\n\006status\030\001 \001(\0102y\n\003RPC\0227\n\006search\022"
+  "\030.VH.SearchRequestMessage\032\017.VH.SearchRep"
+  "ly\"\0000\001\0229\n\006update\022\030.VH.UpdateRequestMessa"
+  "ge\032\021.VH.ExecuteStatus\"\000(\001b\006proto3"
   ;
 static ::PROTOBUF_NAMESPACE_ID::internal::once_flag descriptor_table_VH_2eproto_once;
 const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_VH_2eproto = {
-  false, false, 302, descriptor_table_protodef_VH_2eproto, "VH.proto", 
+  false, false, 313, descriptor_table_protodef_VH_2eproto, "VH.proto", 
   &descriptor_table_VH_2eproto_once, nullptr, 0, 4,
   schemas, file_default_instances, TableStruct_VH_2eproto::offsets,
   file_level_metadata_VH_2eproto, file_level_enum_descriptors_VH_2eproto, file_level_service_descriptors_VH_2eproto,
@@ -403,24 +405,29 @@ SearchRequestMessage::SearchRequestMessage(::PROTOBUF_NAMESPACE_ID::Arena* arena
 SearchRequestMessage::SearchRequestMessage(const SearchRequestMessage& from)
   : ::PROTOBUF_NAMESPACE_ID::Message() {
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
-  st_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+  x_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
   #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-    st_.Set(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), "", GetArenaForAllocation());
+    x_.Set(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), "", GetArenaForAllocation());
   #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  if (!from._internal_st().empty()) {
-    st_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, from._internal_st(), 
+  if (!from._internal_x().empty()) {
+    x_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, from._internal_x(), 
       GetArenaForAllocation());
   }
-  uc_ = from.uc_;
+  ::memcpy(&q_f_, &from.q_f_,
+    static_cast<size_t>(reinterpret_cast<char*>(&cnt_) -
+    reinterpret_cast<char*>(&q_f_)) + sizeof(cnt_));
   // @@protoc_insertion_point(copy_constructor:VH.SearchRequestMessage)
 }
 
 inline void SearchRequestMessage::SharedCtor() {
-st_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+x_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
 #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  st_.Set(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), "", GetArenaForAllocation());
+  x_.Set(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), "", GetArenaForAllocation());
 #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-uc_ = uint64_t{0u};
+::memset(reinterpret_cast<char*>(this) + static_cast<size_t>(
+    reinterpret_cast<char*>(&q_f_) - reinterpret_cast<char*>(this)),
+    0, static_cast<size_t>(reinterpret_cast<char*>(&cnt_) -
+    reinterpret_cast<char*>(&q_f_)) + sizeof(cnt_));
 }
 
 SearchRequestMessage::~SearchRequestMessage() {
@@ -432,7 +439,7 @@ SearchRequestMessage::~SearchRequestMessage() {
 
 inline void SearchRequestMessage::SharedDtor() {
   GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
-  st_.DestroyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+  x_.DestroyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
 }
 
 void SearchRequestMessage::ArenaDtor(void* object) {
@@ -451,8 +458,10 @@ void SearchRequestMessage::Clear() {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  st_.ClearToEmpty();
-  uc_ = uint64_t{0u};
+  x_.ClearToEmpty();
+  ::memset(&q_f_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&cnt_) -
+      reinterpret_cast<char*>(&q_f_)) + sizeof(cnt_));
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
@@ -462,19 +471,27 @@ const char* SearchRequestMessage::_InternalParse(const char* ptr, ::PROTOBUF_NAM
     uint32_t tag;
     ptr = ::PROTOBUF_NAMESPACE_ID::internal::ReadTag(ptr, &tag);
     switch (tag >> 3) {
-      // bytes st = 1;
+      // bytes x = 1;
       case 1:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 10)) {
-          auto str = _internal_mutable_st();
+          auto str = _internal_mutable_x();
           ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParser(str, ptr, ctx);
           CHK_(ptr);
         } else
           goto handle_unusual;
         continue;
-      // uint64 uc = 2;
+      // uint64 q_f = 2;
       case 2:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 16)) {
-          uc_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          q_f_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // uint64 cnt = 3;
+      case 3:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 24)) {
+          cnt_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
           CHK_(ptr);
         } else
           goto handle_unusual;
@@ -508,16 +525,22 @@ uint8_t* SearchRequestMessage::_InternalSerialize(
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // bytes st = 1;
-  if (!this->_internal_st().empty()) {
+  // bytes x = 1;
+  if (!this->_internal_x().empty()) {
     target = stream->WriteBytesMaybeAliased(
-        1, this->_internal_st(), target);
+        1, this->_internal_x(), target);
   }
 
-  // uint64 uc = 2;
-  if (this->_internal_uc() != 0) {
+  // uint64 q_f = 2;
+  if (this->_internal_q_f() != 0) {
     target = stream->EnsureSpace(target);
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteUInt64ToArray(2, this->_internal_uc(), target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteUInt64ToArray(2, this->_internal_q_f(), target);
+  }
+
+  // uint64 cnt = 3;
+  if (this->_internal_cnt() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteUInt64ToArray(3, this->_internal_cnt(), target);
   }
 
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
@@ -536,16 +559,21 @@ size_t SearchRequestMessage::ByteSizeLong() const {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  // bytes st = 1;
-  if (!this->_internal_st().empty()) {
+  // bytes x = 1;
+  if (!this->_internal_x().empty()) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::BytesSize(
-        this->_internal_st());
+        this->_internal_x());
   }
 
-  // uint64 uc = 2;
-  if (this->_internal_uc() != 0) {
-    total_size += ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::UInt64SizePlusOne(this->_internal_uc());
+  // uint64 q_f = 2;
+  if (this->_internal_q_f() != 0) {
+    total_size += ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::UInt64SizePlusOne(this->_internal_q_f());
+  }
+
+  // uint64 cnt = 3;
+  if (this->_internal_cnt() != 0) {
+    total_size += ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::UInt64SizePlusOne(this->_internal_cnt());
   }
 
   return MaybeComputeUnknownFieldsSize(total_size, &_cached_size_);
@@ -570,11 +598,14 @@ void SearchRequestMessage::MergeFrom(const SearchRequestMessage& from) {
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
-  if (!from._internal_st().empty()) {
-    _internal_set_st(from._internal_st());
+  if (!from._internal_x().empty()) {
+    _internal_set_x(from._internal_x());
   }
-  if (from._internal_uc() != 0) {
-    _internal_set_uc(from._internal_uc());
+  if (from._internal_q_f() != 0) {
+    _internal_set_q_f(from._internal_q_f());
+  }
+  if (from._internal_cnt() != 0) {
+    _internal_set_cnt(from._internal_cnt());
   }
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
 }
@@ -597,10 +628,15 @@ void SearchRequestMessage::InternalSwap(SearchRequestMessage* other) {
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
       &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
-      &st_, lhs_arena,
-      &other->st_, rhs_arena
+      &x_, lhs_arena,
+      &other->x_, rhs_arena
   );
-  swap(uc_, other->uc_);
+  ::PROTOBUF_NAMESPACE_ID::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(SearchRequestMessage, cnt_)
+      + sizeof(SearchRequestMessage::cnt_)
+      - PROTOBUF_FIELD_OFFSET(SearchRequestMessage, q_f_)>(
+          reinterpret_cast<char*>(&q_f_),
+          reinterpret_cast<char*>(&other->q_f_));
 }
 
 ::PROTOBUF_NAMESPACE_ID::Metadata SearchRequestMessage::GetMetadata() const {

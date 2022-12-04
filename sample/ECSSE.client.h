@@ -34,7 +34,7 @@ namespace ECSSE
         //     std::string key;
         //     size_t counter = 0;
         //     uc.clear();
-        //     std::ifstream myfile("/home/helen/Desktop/sse/sample/test/client.txt",std::ios::in);
+        //     std::ifstream myfile("/home/zws/Desktop/experience/sample/test/client.txt",std::ios::in);
         //     if(!myfile){
         //         logger::log(logger::ERROR) << "读取错误"<< std::endl;
         //         std::cout<< "error1"<<std::endl;
@@ -82,7 +82,7 @@ namespace ECSSE
         //     if(!myfile){
         //         logger::log(logger::ERROR) << "读取错误"<< std::endl;
         //         std::cout<< "error2"<<std::endl;
-        //         exit(-1);
+        //         exit(-1); 
         //     }
         //     for ( it = uc.begin(); it != uc.end(); ++it) {
         //         //store("s" + it->first, it->second);
@@ -141,6 +141,7 @@ namespace ECSSE
                 return -1;
             assert(s.ok());
         }
+
         std::string get(const std::string key)
         {
             std::string temp;
@@ -151,7 +152,7 @@ namespace ECSSE
                 return "";
         }
 
-         //  uc get   2022.2.27
+        //  uc get   2022.2.27
         void get_stuc(std::string keyword,size_t &uc1){
             std::map<std::string, size_t>::iterator it;		
             it = uc.find(keyword);
@@ -287,10 +288,9 @@ namespace ECSSE
                 //yuanban
                 c = get_update_time(keyword); //取出最新的状态次数
 
-
                 keyword = Util::H1(keyword).substr(0,8);
                 K_w = gen_enc_token(keyword);
-                st = gen_st(keyword, c,K_w);  //生成最新状态
+                st = gen_st(keyword,c,K_w);  //生成最新状态
             }
             catch (const CryptoPP::Exception &e)
             {
