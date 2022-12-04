@@ -107,75 +107,58 @@ int Permutationkey_Gen(std::string key, int n, std::vector<int> &ret)
     return 0;
 }
 
-int ANOTH(int ctr, int len, std::vector<std::string> m, std::vector<std::string> &mplus)
+int ANOTH(int len, std::vector<std::string> m, std::vector<std::string> &mplus)
 {
     if (m.size() + 1 != mplus.size())
     {
         std::cout << "[ANOTH] not sufficient size: " << m.size() << ", " << mplus.size() << std::endl;
         return -1;
     }
-    int n = m.size(); // id个数
-    std::vector<std::string> x(n);
-    std::string allX = "";
-
+    int s = m.size(); // id个数
     std::string keyp = Gen_RandKey(len);
-
-    // x[i] = m[i] ^ Fk'(ctr+i)
-    for (int i = 0; i < n; i++)
+    // x[i] = m[i] ^ Hash'(kp, i)
+    for (int i = 0; i < s; i++)
     {
-        std::string ctr_plus = std::to_string(ctr + i + 1);
-        std::string digest = H1(ctr_plus, keyp).substr(0, m[i].size());
-        x[i] = Xor(m[i], digest);
-        allX += x[i];
+        std::string i_plus = std::to_string(i + 1);
+        std::string digest = H1(keyp, i_plus).substr(0, m[i].size());
+        mplus[i] = Xor(m[i], digest);
     }
-
-    // m'[n+1] = K' ^ H(x[1]...x[n])
-    std::string hash_allx = H(allX).substr(0, keyp.size());
-    mplus[n] = Xor(keyp, hash_allx);
-
-    // m'[i] = x[i] ^ H(m'[n+1] ^ (ctr+i))
-    for (int i = 0; i < n; i++)
+    // m'[n] = Kp ^ h1 ^ h2 ... hs
+    // hi = Hash(K0, mi' ^ i)
+    mplus[s] = keyp;
+    for (int i = 0; i < s; i++)
     {
-        std::string bina_ctr = toBinary(ctr + i + 1);
-        std::string pad_ctr = padding(bina_ctr, mplus[n].size());
-        std::string xor_param = H(Xor(mplus[n], pad_ctr)).substr(0, x[i].size());
-        mplus[i] = Xor(x[i], xor_param);
+        std::string bina_i = toBinary(i + 1);
+        std::string pad_i = padding(bina_i, mplus[i].size());
+        std::string xor_param = H1(ANOTHKEY, Xor(mplus[i], pad_i)).substr(0, mplus[s].size());
+        mplus[s] = Xor(mplus[s], xor_param);
     }
     return 0;
 }
 
-int D_AONTH(int ctr, std::vector<std::string> mplus, std::vector<std::string> &m)
+int D_AONTH(std::vector<std::string> mplus, std::vector<std::string> &m)
 {
     if (m.size() + 1 != mplus.size())
     {
         std::cout << "[D_AONTH] not sufficient size: " << m.size() << ", " << mplus.size() << std::endl;
         return -1;
     }
-    int n = m.size();
-    std::vector<std::string> x(n);
-    std::string allX = "";
-    std::string keyp;
-
-    // x[i] = m'[i] ^ H(m'[n+1] ^ (ctr+i))
-    for (int i = 0; i < n; i++)
+    int s = m.size();
+    std::string keyp = mplus[s];
+    // K' = m'[n] ^ h1 ^ h2 ... hs
+    for (int i = 0; i < s; i++)
     {
-        std::string bina_ctr = toBinary(ctr + i + 1);
-        std::string pad_ctr = padding(bina_ctr, mplus[n].size());
-        std::string xor_param = H(Xor(mplus[n], pad_ctr)).substr(0, mplus[i].size()); //
-        x[i] = Xor(mplus[i], xor_param);
-        allX += x[i];
+        std::string bina_i = toBinary(i + 1);
+        std::string pad_i = padding(bina_i, mplus[i].size());
+        std::string xor_param = H1(ANOTHKEY, Xor(mplus[i], pad_i)).substr(0, keyp.size());
+        keyp = Xor(keyp, xor_param);
     }
-
-    // K' = m'[n+1] ^ H(x[1]...x[n])
-    std::string hash_allx = H(allX).substr(0, mplus[n].size());
-    keyp = Xor(mplus[n], hash_allx);
-
-    // m[i] = x[i] ^ Fk'(ctr+i)
-    for (int i = 0; i < n; i++)
+    // m[i] = mplus[i] ^ Hash'(k, i)
+    for (int i = 0; i < s; i++)
     {
-        std::string ctr_plus = std::to_string(ctr + i + 1);
-        std::string digest = H1(ctr_plus, keyp).substr(0, x[i].size());
-        m[i] = Xor(x[i], digest);
+        std::string i_plus = std::to_string(i + 1);
+        std::string digest = H1(keyp, i_plus).substr(0, mplus[i].size());
+        m[i] = Xor(mplus[i], digest);
     }
     return 0;
 }
@@ -204,7 +187,7 @@ int Pr_Gen(std::vector<std::string> key, std::vector<std::string> w, int len, in
     return 0;
 }
 
-int Pr_Enc(std::vector<std::string> key, std::vector<std::string> w, std::vector<std::string> m, int ctr, int len,
+int Pr_Enc(std::vector<std::string> key, std::vector<std::string> w, std::vector<std::string> m, int len,
            std::vector<std::string> &c)
 {
     if (m.size() + 1 != c.size())
@@ -223,9 +206,9 @@ int Pr_Enc(std::vector<std::string> key, std::vector<std::string> w, std::vector
         std::cout << "[Pr_Enc] run Pr_Gen err" << std::endl;
         return -1;
     }
-    // m1'...mn'=AONTH(ctr, len, m1...mn)
+    // m1'...mn'=AONTH(len, m1...mn)
     std::vector<std::string> mplus(n);
-    ANOTH(ctr, len, m, mplus);
+    ANOTH(len, m, mplus);
     // m1''...mn''= Perm(P3, m1'...ms')
     std::vector<std::string> mplusplus(s);
     if (Permutation2(0, P3, mplus, mplusplus) != 0)
@@ -244,7 +227,7 @@ int Pr_Enc(std::vector<std::string> key, std::vector<std::string> w, std::vector
     return 0;
 }
 
-int Pr_Dec(std::vector<std::string> key, std::vector<std::string> w, std::vector<std::string> c, int ctr, int len,
+int Pr_Dec(std::vector<std::string> key, std::vector<std::string> w, std::vector<std::string> c, int len,
            std::vector<std::string> &m)
 {
     if (m.size() + 1 != c.size())
@@ -278,8 +261,8 @@ int Pr_Dec(std::vector<std::string> key, std::vector<std::string> w, std::vector
         std::cout << "[Pr_Dec] run De_Permutation2 err" << std::endl;
         return -1;
     }
-    // m1..ms=D-AONTH(ctr, m1'...mn')
-    D_AONTH(ctr, mplus, m);
+    // m1..ms=D-AONTH( m1'...mn')
+    D_AONTH(mplus, m);
     return 0;
 }
 
@@ -384,7 +367,8 @@ void sEMM_Setup(int lambda, std::map<std::string, std::vector<std::string>> MMp,
 
 void sEMM_Token(std::string mskp, std::string w1, std::string w2, std::string &token)
 {
-    encrypt(mskp, w1 + "∩" + w2, token);
+    std::string word = w1 + "∩" + w2;
+    encrypt(mskp, word, token);
 }
 
 void sEMM_Search(std::string tokp, std::map<std::string, std::vector<std::string>> EMMp, std::vector<std::string> &tags)
@@ -415,10 +399,7 @@ int PR_Filter_Setup(pr_filter_setup_param param, pr_filter_setup_res &res)
         }
         // keyab_enc=F(Kp, a||b)
         std::string key_ab_enc = H1(res.mk.kp, a + b);
-        // DX[(a,b)]<-ctr
-        unsigned int ctr = rand() % 1000000;
-        res.DX.insert(std::pair<std::string, int>{mm.first, ctr});
-        // c0..cs = Pr.Enc(Kv, kt, kxor, a, b, ctr, v1...vs, len, s)
+        // c0..cs = Pr.Enc(Kv, kt, kxor, a, b, v1...vs, len, s)
         std::vector<std::string> c(n);
         std::vector<std::string> key{res.mk.kv, res.mk.kt, res.mk.kxor};
         std::vector<std::string> w{a, b};
@@ -427,7 +408,7 @@ int PR_Filter_Setup(pr_filter_setup_param param, pr_filter_setup_res &res)
         {
             len = mm.second[0].size();
         }
-        if (Pr_Enc(key, w, mm.second, ctr, len, c) != 0)
+        if (Pr_Enc(key, w, mm.second, len, c) != 0)
         {
             std::cout << "[PR_Filter_Setup] call Pr_Enc failed" << std::endl;
             return -1;
@@ -471,10 +452,14 @@ int PR_Filter_Token(pr_filter_token_param param, pr_filter_token_res &res)
         // kred = PR.ReGen(kv, kt, kxor, w1, wd-1, wd, len, s)
         std::vector<std::string> input_key{param.mk.kv, param.mk.kt, param.mk.kxor};
         std::vector<std::string> input_w{param.words[0], param.words[i - 1], param.words[i]};
-        std::vector<std::vector<int>> CK;
-        std::vector<std::vector<int>> P2;
-        std::vector<std::string> KeyPhi;
-        Pr_ReGen(input_key, input_w, param.len, param.s, CK, P2, KeyPhi);
+        std::vector<std::vector<int>> CK(2);
+        std::vector<std::vector<int>> P2(2);
+        std::vector<std::string> KeyPhi(2);
+        if (Pr_ReGen(input_key, input_w, param.len, param.s, CK, P2, KeyPhi) != 0)
+        {
+            std::cout << "[PR_Filter_Token] call Pr_ReGen failed" << std::endl;
+            return -1;
+        }
         // split
         key_re_d k_re_d;
         k_re_d.CK = CK;
@@ -506,11 +491,15 @@ int PR_Filter_Search(pr_filter_search_param param, pr_filter_search_res &res)
     // dtage(l,d) = F(kx, cl')
     int n = c.size(), s = n - 1;
     std::vector<bool> vaild(s, true);
+    std::vector<std::string> cplus(c.size());
     std::string dtag;
     for (int i = 0; i < param.tokq.tokp_vec.size(); i++)
     {
-        std::vector<std::string> cplus(c.size());
-        Pr_ReEnc(param.tokq.tokp_vec[i].CK, param.tokq.tokp_vec[i].P2, param.tokq.tokp_vec[i].KeyPhi, c, cplus);
+        if (Pr_ReEnc(param.tokq.tokp_vec[i].CK, param.tokq.tokp_vec[i].P2, param.tokq.tokp_vec[i].KeyPhi, c, cplus) != 0)
+        {
+            std::cout << "[PR_Filter_Search] call Pr_ReEnc failed" << std::endl;
+            return -1;
+        }
         for (int j = 0; j < c.size(); j++)
         {
             c[j] = cplus[j];
@@ -526,6 +515,8 @@ int PR_Filter_Search(pr_filter_search_param param, pr_filter_search_res &res)
             }
         }
     }
+    res.c = cplus;
+    res.vaild = vaild;
     // done
     return 0;
 }
@@ -537,9 +528,7 @@ int PR_Filter_Resolve(pr_filter_resolve_param param, std::vector<std::string> &r
         std::cout << "[PR_Filter_Resolve] vaild size wrong: " << param.vaild.size() << std::endl;
         return -1;
     }
-    // ctr=Dx[(w1, wn)]
-    int ctr = param.DX[param.w1 + "∩" + param.wn];
-    // v1..vs=PR.Dec(kv, kt, kxor, w1, wn, ctr, c0..cs)
+    // v1..vs=PR.Dec(kv, kt, kxor, w1, wn, c0..cs)
     int n = param.c.size(), s = n - 1, len = 0;
     if (n > 0)
     {
@@ -548,7 +537,11 @@ int PR_Filter_Resolve(pr_filter_resolve_param param, std::vector<std::string> &r
     std::vector<std::string> v(s);
     std::vector<std::string> key{param.mk.kv, param.mk.kt, param.mk.kxor};
     std::vector<std::string> w{param.w1, param.wn};
-    Pr_Dec(key, w, param.c, ctr, len, v);
+    if (Pr_Dec(key, w, param.c, len, v) != 0)
+    {
+        std::cout << "[PR_Filter_Resolve] call Pr_Dec failed" << std::endl;
+        return -1;
+    }
     // get vaild value
     for (int i = 0; i < s; i++)
     {

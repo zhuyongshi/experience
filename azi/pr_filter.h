@@ -15,6 +15,8 @@
 
 using namespace CryptoPP;
 
+#define ANOTHKEY "ANOTH"
+
 //从word中获取w1和w2
 int find_w12_from_w(std::string word, std::string &w1, std::string &w2);
 
@@ -36,15 +38,15 @@ std::vector<int> Find_CK(int n, std::vector<int> kpa, std::vector<int> kpb);
 // 密钥扩展函数，将密钥从key长度扩展到n长度
 int Permutationkey_Gen(std::string key, int n, std::vector<int> &ret);
 
-int ANOTH(int ctr, int len, std::vector<std::string> m, std::vector<std::string> &mplus);
+int ANOTH(int len, std::vector<std::string> m, std::vector<std::string> &mplus);
 
-int D_AONTH(int ctr, std::vector<std::string> mplus, std::vector<std::string> &m);
+int D_AONTH(std::vector<std::string> mplus, std::vector<std::string> &m);
 
 int Pr_Gen(std::vector<std::string> key, std::vector<std::string> w, int len, int n, std::vector<std::string> &P1, std::vector<std::string> &P2, std::vector<std::string> &P3, std::string &retkey);
 
-int Pr_Enc(std::vector<std::string> key, std::vector<std::string> w, std::vector<std::string> m, int ctr, int len, std::vector<std::string> &c);
+int Pr_Enc(std::vector<std::string> key, std::vector<std::string> w, std::vector<std::string> m, int len, std::vector<std::string> &c);
 
-int Pr_Dec(std::vector<std::string> key, std::vector<std::string> w, std::vector<std::string> c, int ctr, int len, std::vector<std::string> &m);
+int Pr_Dec(std::vector<std::string> key, std::vector<std::string> w, std::vector<std::string> c, int len, std::vector<std::string> &m);
 
 int Pr_ReGen(std::vector<std::string> key, std::vector<std::string> w, int len, int s, std::vector<std::vector<int>> &RetCK, std::vector<std::vector<int>> &RetP2, std::vector<std::string> &RetKeyPhi);
 
@@ -91,7 +93,6 @@ typedef struct
 {
     MK mk;
     EMM emm;
-    std::map<std::string, int> DX;
 } pr_filter_setup_res;
 
 int PR_Filter_Setup(pr_filter_setup_param param, pr_filter_setup_res &res);
@@ -121,8 +122,8 @@ typedef struct
 
 typedef struct
 {
-    std::vector<std::string> ans;
-    std::vector<std::string> tags_k;
+    std::vector<std::string> c;
+    std::vector<bool> vaild;
 } pr_filter_search_res;
 
 int PR_Filter_Search(pr_filter_search_param param, pr_filter_search_res &res);
@@ -132,7 +133,6 @@ typedef struct
     std::string w1;
     std::string wn;
     MK mk;
-    std::map<std::string, int> DX;
     std::vector<std::string> c;
     std::vector<bool> vaild;
 } pr_filter_resolve_param;

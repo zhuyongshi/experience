@@ -105,10 +105,10 @@ void Test_PGen()
 void Test_AONTH_DAONTH()
 {
     // 测试AONTH
-    int ctr = 20, len = 8;
+    int len = 8;
     std::vector<std::string> m{"abc", "def", "ghi", "jkl", "mno", "pqr"};
     std::vector<std::string> mplus(m.size() + 1);
-    ANOTH(ctr, len, m, mplus);
+    ANOTH(len, m, mplus);
     for (int i = 0; i < mplus.size(); i++)
     {
         std::cout << mplus[i] << " ";
@@ -117,7 +117,7 @@ void Test_AONTH_DAONTH()
 
     // 测试D-AONTH
     std::vector<std::string> origin_m(mplus.size() - 1);
-    D_AONTH(ctr, mplus, origin_m);
+    D_AONTH(mplus, origin_m);
     for (int i = 0; i < m.size(); i++)
     {
         std::cout << origin_m[i] << " ";
@@ -131,11 +131,11 @@ void Test_Pr_ED()
     std::vector<std::string> key{"01010", "10101", "11100"};
     std::vector<std::string> w{"name", "age"};
     std::vector<std::string> m{"id1", "id2", "id4", "id5", "id6"};
-    int ctr = 20, len = m[0].size();
+    int len = m[0].size();
 
     int s = m.size(), n = s + 1;
     std::vector<std::string> c(n);
-    Pr_Enc(key, w, m, ctr, len, c);
+    Pr_Enc(key, w, m, len, c);
     std::cout << "Pr_Enc:" << std::endl;
     for (size_t i = 0; i < n; i++)
     {
@@ -144,7 +144,7 @@ void Test_Pr_ED()
     std::cout << std::endl;
 
     std::vector<std::string> mm(s);
-    Pr_Dec(key, w, c, ctr, len, mm);
+    Pr_Dec(key, w, c, len, mm);
     std::cout << "Pr_Dec:" << std::endl;
     for (size_t i = 0; i < s; i++)
     {
@@ -159,11 +159,11 @@ void Test_Pr_ED_NUL()
     std::vector<std::string> key{"01010", "10101", "11100"};
     std::vector<std::string> w{"name", "age"};
     std::vector<std::string> m;
-    int ctr = 20, len = 0;
+    int len = 0;
 
     int s = m.size(), n = s + 1;
     std::vector<std::string> c(n);
-    Pr_Enc(key, w, m, ctr, len, c);
+    Pr_Enc(key, w, m, len, c);
     std::cout << "Pr_Enc:" << std::endl;
     for (size_t i = 0; i < n; i++)
     {
@@ -172,7 +172,7 @@ void Test_Pr_ED_NUL()
     std::cout << std::endl;
 
     std::vector<std::string> mm(s);
-    Pr_Dec(key, w, c, ctr, len, mm);
+    Pr_Dec(key, w, c, len, mm);
     std::cout << "Pr_Dec:" << std::endl;
     for (size_t i = 0; i < s; i++)
     {
@@ -189,11 +189,11 @@ void Test_RG_RE()
     std::vector<std::string> w2{"name", "sex"};
     std::vector<std::string> w3{"name", "age", "sex"};
     std::vector<std::string> m{"id1", "id2", "id4", "id5", "id6"};
-    int ctr = 20, len = m[0].size();
+    int len = m[0].size();
 
     int s = m.size(), n = s + 1;
     std::vector<std::string> c(n);
-    Pr_Enc(key, w1, m, ctr, len, c);
+    Pr_Enc(key, w1, m, len, c);
 
     std::vector<std::vector<int>> CK(2);
     std::vector<std::vector<int>> P2(2);
@@ -204,7 +204,7 @@ void Test_RG_RE()
     Pr_ReEnc(CK, P2, KeyPhi, c, cc);
 
     std::vector<std::string> mm(s);
-    Pr_Dec(key, w2, cc, ctr, len, mm);
+    Pr_Dec(key, w2, cc, len, mm);
     for (size_t i = 0; i < s; i++)
     {
         std::cout << mm[i] << " ";
@@ -216,17 +216,22 @@ void Test_RG_RE()
 void Test_Pr_filter()
 {
     // setup
+    // std::map<std::string, std::vector<std::string>> MM = {
+    //     {"name∩age", std::vector<std::string>{"id1", "id2", "id4"}},
+    //     {"name∩sex", std::vector<std::string>{"id2"}},
+    //     {"name∩old", std::vector<std::string>{"id2"}},
+    //     {"name∩address", std::vector<std::string>{"id4"}},
+    //     {"age∩sex", std::vector<std::string>{"id2", "id3"}},
+    //     {"age∩old", std::vector<std::string>{"id2", "id3"}},
+    //     {"age∩address", std::vector<std::string>{"id3", "id4"}},
+    //     {"sex∩old", std::vector<std::string>{"id2", "id3"}},
+    //     {"sex∩address", std::vector<std::string>{"id3", "id4"}},
+    //     {"old∩address", std::vector<std::string>{"id3"}},
+    // };
     std::map<std::string, std::vector<std::string>> MM = {
-        {"name∩age", std::vector<std::string>{"id1", "id2", "id4"}},
-        {"name∩sex", std::vector<std::string>{"id2"}},
-        {"name∩old", std::vector<std::string>{"id2"}},
-        {"name∩address", std::vector<std::string>{"id4"}},
-        {"age∩sex", std::vector<std::string>{"id2", "id3"}},
-        {"age∩old", std::vector<std::string>{"id2", "id3"}},
-        {"age∩address", std::vector<std::string>{"id3", "id4"}},
-        {"sex∩old", std::vector<std::string>{"id2", "id3"}},
-        {"sex∩address", std::vector<std::string>{"id3", "id4"}},
-        {"old∩address", std::vector<std::string>{"id3"}},
+        {"name∩age", std::vector<std::string>{"id1", "id2", "id3"}},
+        {"name∩sex", std::vector<std::string>{"id1", "id2", "id3"}},
+        {"age∩sex", std::vector<std::string>{"id1", "id2", "id3"}},
     };
     pr_filter_setup_param setup_param;
     setup_param.lambda = 5;
@@ -240,19 +245,31 @@ void Test_Pr_filter()
     token_param.len = 3;
     token_param.s = 3;
     token_param.mk = setup_res.mk;
-    token_param.words = std::vector<std::string>{"name", "age", "sex","old","sex"};
+    token_param.words = std::vector<std::string>{"name", "age", "sex"};
     pr_filter_token_res token_res;
     PR_Filter_Token(token_param, token_res);
 
     // search
     pr_filter_search_param search_param;
+    search_param.tokq = token_res;
+    search_param.emm = setup_res.emm;
     pr_filter_search_res search_res;
     PR_Filter_Search(search_param, search_res);
 
     // resolve
     pr_filter_resolve_param resolve_param;
+    resolve_param.w1="name";
+    resolve_param.wn="sex";
+    resolve_param.c=search_res.c;
+    resolve_param.vaild=search_res.vaild;
+    resolve_param.mk=token_param.mk;
     std::vector<std::string> resolve_res;
     PR_Filter_Resolve(resolve_param, resolve_res);
+    for (int i = 0; i < resolve_res.size(); i++)
+    {
+        std::cout << resolve_res[i] << " ";
+    }
+    std::cout << std::endl;
 }
 
 int main()

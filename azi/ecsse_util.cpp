@@ -113,7 +113,6 @@ int gen_key(byte *key1)
 // 产生随机数密钥串，类型为string
 std::string Gen_RandKey(int len)
 {
-    srand(time(NULL));
     std::string key = "";
     int rn;
     while (len != 0)
@@ -131,39 +130,41 @@ std::string Gen_RandKey(int len)
     return key;
 }
 
-//AES加密函数
-void encrypt(std::string key, std::string plaintext,std::string &ciphertext){
+// AES加密函数
+void encrypt(std::string key, std::string plaintext, std::string &ciphertext)
+{
     try
     {
         byte iv_s[17] = "0123456789abcdef";
-        CFB_Mode< AES >::Encryption e;
-        e.SetKeyWithIV((byte*) key.c_str(), AES128_KEY_LEN, iv_s, (size_t)AES::BLOCKSIZE); 
+        CFB_Mode<AES>::Encryption e;
+        e.SetKeyWithIV((byte *)key.c_str(), AES128_KEY_LEN, iv_s, (size_t)AES::BLOCKSIZE);
         byte tmp_new_st[AES128_KEY_LEN];
-        e.ProcessData(tmp_new_st, (byte*) plaintext.c_str(), plaintext.length());
-        ciphertext= std::string((const char*)tmp_new_st, plaintext.length());
+        e.ProcessData(tmp_new_st, (byte *)plaintext.c_str(), plaintext.length());
+        ciphertext = std::string((const char *)tmp_new_st, plaintext.length());
     }
-    catch(const CryptoPP::Exception& e)
+    catch (const CryptoPP::Exception &e)
     {
-        std::cerr << "in descrypt()解密出问题 " << e.what()<< std::endl;
+        std::cerr << "in descrypt()解密出问题 " << e.what() << std::endl;
         exit(1);
     }
 }
 
-//AES解密函数
-void descrypt(std::string key, std::string ciphertext,std::string &plaintext){
+// AES解密函数
+void descrypt(std::string key, std::string ciphertext, std::string &plaintext)
+{
     try
     {
         byte iv_s[17] = "0123456789abcdef";
-        CFB_Mode< AES >::Decryption d;
-        d.SetKeyWithIV((byte*) key.c_str(), AES128_KEY_LEN, iv_s, (size_t)AES::BLOCKSIZE); 
+        CFB_Mode<AES>::Decryption d;
+        d.SetKeyWithIV((byte *)key.c_str(), AES128_KEY_LEN, iv_s, (size_t)AES::BLOCKSIZE);
         byte tmp_new_st[AES128_KEY_LEN];
-        d.ProcessData(tmp_new_st, (byte*) ciphertext.c_str(), ciphertext.length());
-        plaintext= std::string((const char*)tmp_new_st, ciphertext.length());
+        d.ProcessData(tmp_new_st, (byte *)ciphertext.c_str(), ciphertext.length());
+        plaintext = std::string((const char *)tmp_new_st, ciphertext.length());
     }
-    catch(const CryptoPP::Exception& e)
+    catch (const CryptoPP::Exception &e)
     {
-        std::cerr << "in descrypt()解密出问题 " << e.what()<< std::endl;
+        std::cerr << "in descrypt()解密出问题 " << e.what() << std::endl;
         exit(1);
     }
-    //return plaintext;
+    // return plaintext;
 }
