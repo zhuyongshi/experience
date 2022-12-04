@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+
+package azi;
+
+service RPC {
+
+// Search
+rpc search (SearchRequestMessage) returns (stream SearchReply) {}
+
+// Update
+rpc update (stream UpdateRequestMessage) returns ( ExecuteStatus ) {}
+
+rpc updateXset (stream UpdateRequestMessage) returns ( ExecuteStatus ) {}
+
+
+}
+
+
+message UpdateRequestMessage
+{
+    bytes l = 1;
+    bytes e = 2;
+}
+
+message UpdateXsetMessage{
+    bytes x = 1;
+}
+
+message SearchRequestMessage
+{
+    bytes x = 1;
+	uint64 q_f = 2; 
+    uint64 cnt = 3;
+}
+
+
+message SearchReply
+{
+	bytes ind = 1;
+}
+
+message ExecuteStatus
+{
+	bool status = 1; 
+}
