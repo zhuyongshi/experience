@@ -135,35 +135,37 @@ void encrypt(std::string key, std::string plaintext, std::string &ciphertext)
 {
     try
     {
+        key=padding(key, 16);
         byte iv_s[17] = "0123456789abcdef";
         CFB_Mode<AES>::Encryption e;
         e.SetKeyWithIV((byte *)key.c_str(), AES128_KEY_LEN, iv_s, (size_t)AES::BLOCKSIZE);
-        byte tmp_new_st[AES128_KEY_LEN];
+        byte tmp_new_st[AES128_KEY_LEN]={0};
         e.ProcessData(tmp_new_st, (byte *)plaintext.c_str(), plaintext.length());
         ciphertext = std::string((const char *)tmp_new_st, plaintext.length());
     }
     catch (const CryptoPP::Exception &e)
     {
-        std::cerr << "in descrypt()解密出问题 " << e.what() << std::endl;
+        std::cerr << "in descrypt()解密出问题" << e.what() << std::endl;
         exit(1);
     }
 }
 
 // AES解密函数
-void descrypt(std::string key, std::string ciphertext, std::string &plaintext)
+void decrypt(std::string key, std::string ciphertext, std::string &plaintext)
 {
     try
     {
+        key=padding(key, 16);
         byte iv_s[17] = "0123456789abcdef";
         CFB_Mode<AES>::Decryption d;
         d.SetKeyWithIV((byte *)key.c_str(), AES128_KEY_LEN, iv_s, (size_t)AES::BLOCKSIZE);
-        byte tmp_new_st[AES128_KEY_LEN];
+        byte tmp_new_st[AES128_KEY_LEN]={0};
         d.ProcessData(tmp_new_st, (byte *)ciphertext.c_str(), ciphertext.length());
         plaintext = std::string((const char *)tmp_new_st, ciphertext.length());
     }
     catch (const CryptoPP::Exception &e)
     {
-        std::cerr << "in descrypt()解密出问题 " << e.what() << std::endl;
+        std::cerr << "in descrypt()解密出问题" << e.what() << std::endl;
         exit(1);
     }
     // return plaintext;

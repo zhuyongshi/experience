@@ -1,4 +1,5 @@
-#include "pr_filter.h"
+#include "pr_filter_server.h"
+#include "pr_filter_client.h"
 
 void Test_GenKey()
 {
@@ -130,7 +131,7 @@ void Test_Pr_ED()
 {
     std::vector<std::string> key{"01010", "10101", "11100"};
     std::vector<std::string> w{"name", "age"};
-    std::vector<std::string> m{"id1", "id2", "id4", "id5", "id6"};
+    std::vector<std::string> m{"id1", "id2", "id3", "id4", "id5"};
     int len = m[0].size();
 
     int s = m.size(), n = s + 1;
@@ -188,7 +189,7 @@ void Test_RG_RE()
     std::vector<std::string> w1{"name", "age"};
     std::vector<std::string> w2{"name", "sex"};
     std::vector<std::string> w3{"name", "age", "sex"};
-    std::vector<std::string> m{"id1", "id2", "id4", "id5", "id6"};
+    std::vector<std::string> m{"id1", "id2", "id3", "id4", "id5"};
     int len = m[0].size();
 
     int s = m.size(), n = s + 1;
@@ -203,6 +204,7 @@ void Test_RG_RE()
     std::vector<std::string> cc(n);
     Pr_ReEnc(CK, P2, KeyPhi, c, cc);
 
+    // 重加密后的结果
     std::vector<std::string> mm(s);
     Pr_Dec(key, w2, cc, len, mm);
     for (size_t i = 0; i < s; i++)
@@ -210,6 +212,14 @@ void Test_RG_RE()
         std::cout << mm[i] << " ";
     }
     std::cout << std::endl;
+
+    // 直接加密的结果
+    std::vector<std::string> ccc(n);
+    Pr_Enc(key, w2, m, len, ccc);
+    std::vector<std::string> mmm(s);
+    Pr_Dec(key, w2, ccc, len, mmm);
+
+    return;
 }
 
 //测试Pr-filter
@@ -251,18 +261,20 @@ void Test_Pr_filter()
 
     // search
     pr_filter_search_param search_param;
-    search_param.tokq = token_res;
+    search_param.tokp = token_res.tokp;
+    search_param.k_w12_enc = token_res.k_w12_enc;
+    search_param.tokp_vec = token_res.tokp_vec;
     search_param.emm = setup_res.emm;
     pr_filter_search_res search_res;
     PR_Filter_Search(search_param, search_res);
 
     // resolve
     pr_filter_resolve_param resolve_param;
-    resolve_param.w1="name";
-    resolve_param.wn="sex";
-    resolve_param.c=search_res.c;
-    resolve_param.vaild=search_res.vaild;
-    resolve_param.mk=token_param.mk;
+    resolve_param.w1 = "name";
+    resolve_param.wn = "sex";
+    resolve_param.c = search_res.c;
+    resolve_param.vaild = search_res.vaild;
+    resolve_param.mk = token_param.mk;
     std::vector<std::string> resolve_res;
     PR_Filter_Resolve(resolve_param, resolve_res);
     for (int i = 0; i < resolve_res.size(); i++)
@@ -283,7 +295,7 @@ int main()
     // Test_AONTH_DAONTH();
     // Test_Pr_ED();
     // Test_Pr_ED_NUL();
-    // Test_RG_RE();
-    Test_Pr_filter();
+    Test_RG_RE();
+    // Test_Pr_filter();
     return 0;
 }

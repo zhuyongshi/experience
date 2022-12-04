@@ -47,5 +47,5 @@ std::string Gen_RandKey(int len);
 void encrypt(std::string key, std::string plaintext,std::string &ciphertext);
 
 // AES解密
-void descrypt(std::string key, std::string ciphertext, std::string &plaintext);
+void decrypt(std::string key, std::string ciphertext, std::string &plaintext);
 

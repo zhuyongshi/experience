@@ -9,10 +9,10 @@ dbstr="debug"
 
 if [ "$1" = "$dbstr" ]
 then
-    g++ main.cpp pr_filter.cpp ecsse_util.cpp -o run -lcryptopp -g3
+    g++ main.cpp pr_filter_util.cpp pr_filter_server.cpp pr_filter_client.cpp ecsse_util.cpp -o run -lcryptopp -g3
     echo "编译可调试文件"
 else
-    g++ main.cpp pr_filter.cpp ecsse_util.cpp -o run -lcryptopp
+    g++ main.cpp pr_filter_util.cpp pr_filter_server.cpp pr_filter_client.cpp ecsse_util.cpp -o run -lcryptopp
     echo "编译可执行文件"
 fi
 
