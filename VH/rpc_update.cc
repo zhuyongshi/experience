@@ -50,5 +50,5 @@ int main(int argc, char **argv)
 //取数据进行update
 /*
         0           1           2           3               4               5          6   7       8
-    ./rpc_update [kw_path] [MM_st_path] [order_MM_path] [stash_path.txt] [update_num] [l] [p] [thread_num]
+    ./rpc_update [kw_path] [MM_st_path] [order_MM_path] [stash_path] [update_num] [l] [p] [thread_num]
 */

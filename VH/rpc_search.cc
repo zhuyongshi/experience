@@ -12,7 +12,7 @@ using VH::SearchRequestMessage;
 
 int main(int argc, char **argv){
     if(argc<9){
-        std::cerr << "参数个数小于3个" << std::endl;
+        std::cerr << "参数个数小于9个" << std::endl;
         exit(-1);
     }
     size_t thread_num = atoi(argv[7]);
@@ -28,13 +28,20 @@ int main(int argc, char **argv){
     VH::Client client(grpc::CreateChannel("127.0.0.1:50051", grpc::InsecureChannelCredentials()), std::string(argv[1]),MM_st_path,l,p);
 
     std::string kw = argv[8];
+    std::unordered_set<std::string> Result;
 
     std::cout<<"search start"<<std::endl;
-    client.search(kw,stash);
+    client.search(kw,stash,Result);
     std::cout<<"search end"<<std::endl;
+
+    for(auto i : Result){
+        std::cout<<i<<" ";
+    }
+    std::cout<<std::endl;
+    VH::write_stash_txt(stash_path,stash);
     return 0;
 }   
 
 //普通搜索实现
 //      0           1           2           3           4           5   6       7         8
-// /.rpc_search  [kw_path] [MM_st_path] [db_path] [stash_path.txt] [l] [p] [threads_num] [kw]
+// /.rpc_search  [kw_path] [MM_st_path] [db_path] [stash_path] [l] [p] [threads_num] [kw]

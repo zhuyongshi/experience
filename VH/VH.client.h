@@ -76,8 +76,8 @@ namespace VH{
                     std::string x = Util::H_key(MM_st[kw].key,kw); //保护关键字
                     std::string y = Util::H_key(x,std::to_string(i));  //产生加密索引
                     std::string e_value; 
-                    char op = '2'; //op取值 0：app 1: del 2:full
-                    Util::encrypt(K_enc,iv,"*"+op,e_value); 
+                    std::string op = "*2"; //op取值 0：app 1: del 2:full
+                    Util::encrypt(K_enc,iv,op,e_value); 
                     DX[y] = e_value;
                 }
                 std::vector<UpdateRequestMessage> update_list;
@@ -187,7 +187,6 @@ namespace VH{
                 MM_st[w].cnt_true=stoi(out);
                 input >> out;
                 MM_st[w].key=out;
-                std::cout<<MM_st[w].query_first<<" "<<MM_st[w].cnt_true<<" "<<std::endl;
             }
             MM_myfile.close();
 
@@ -239,7 +238,7 @@ namespace VH{
             return status;
         }
 
-        std::string search(const std::string kw,std::map<std::string,std::queue<std::pair<std::string,std::string>>> &stash){
+        void search(const std::string kw,std::map<std::string,std::queue<std::pair<std::string,std::string>>> &stash,std::unordered_set<std::string>& ID){
             std::string x = Util::H_key(MM_st[kw].key,kw); 
             SearchRequestMessage request;
             request.set_cnt(l);
@@ -249,12 +248,13 @@ namespace VH{
             std::unique_ptr<ClientReaderInterface<SearchReply>> reader = stub_->search(&context, request);
            //这里获得了从server端返回的真实且经过op操作以后的id列表。
            //读取返回列表：
-            std::unordered_set<std::string> ID;
             SearchReply reply;
             MM_st[kw].cnt_true = 0;
+            std::cout<<"client search"<<std::endl;
             while(reader->Read(&reply)){
                 std::string op_id;
                 Util::descrypt(K_enc,iv,reply.ind(),op_id);
+                std::cout<<op_id<<std::endl;
                 if(op_id.find('*')<0){
                     //找不到‘*’代表是真的
                     int i = op_id.find(',');
@@ -283,7 +283,7 @@ namespace VH{
             re_update(ID,kw);
         }
 
-        void re_update(std::unordered_set<std::string> ID,const std::string kw){
+        void re_update(const std::unordered_set<std::string> ID,const std::string kw){
             std::map<std::string,std::string> DX;
             for(int i=0;i<l-ID.size();i++){
                 std::string x = Util::H_key(MM_st[kw].key,kw); //保护关键字

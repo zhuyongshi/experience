@@ -12,7 +12,7 @@ PROTOS_PATH = .
 
 vpath %.proto $(PROTOS_PATH)
 
-all: system-check rpc_server rpc_setup rpc_update
+all: system-check rpc_server rpc_setup rpc_update rpc_search
 
 rpc_server: VH.pb.o VH.grpc.pb.o rpc_server.o VH.Util.o 
 	$(CXX) $^ $(LDFLAGS) -o $@
@@ -21,6 +21,9 @@ rpc_setup: rpc_setup.o VH.pb.o VH.grpc.pb.o  VH.Util.o
 	$(CXX) $^ $(LDFLAGS) -o $@
 
 rpc_update: rpc_update.o VH.pb.o VH.grpc.pb.o  VH.Util.o 
+	$(CXX) $^ $(LDFLAGS) -o $@
+
+rpc_search: rpc_search.o VH.pb.o VH.grpc.pb.o  VH.Util.o 
 	$(CXX) $^ $(LDFLAGS) -o $@
 
 .PRECIOUS: %.grpc.pb.cc

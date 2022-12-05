@@ -50,11 +50,12 @@ namespace VH{
                 rocksdb::Status s;
                 rocksdb::WriteOptions write_option = rocksdb::WriteOptions();
                 {
-                    std::cout<<l<<" "<<e<<std::endl;
                     s = db->Put(write_option, l, e);
                 }
-                if (s.ok())
+                if (s.ok()){
+                    std::cout<<l<<" "<<e<<std::endl;
                     return 0;
+                }
                 else
                     return -1;
             }
@@ -65,6 +66,7 @@ namespace VH{
                 rocksdb::Status s;
                 {
                     s = db->Get(rocksdb::ReadOptions(), l, &tmp);
+                    std::cout<<tmp<<std::endl;
                 }
                 if (s.ok())
                     return tmp;
@@ -85,9 +87,14 @@ namespace VH{
                 {
                     l = request.l();
                     e = request.e();
-                    store(ss_db, l, e);
-                    sum++;
-                    std::cout<<sum<<std::endl;
+                    int status = store(ss_db, l, e);
+                    if (status != 0)
+                    {
+                        response->set_status(false);
+                        return Status::CANCELLED;
+                    }
+                    // sum++;
+                    // std::cout<<sum<<std::endl;
                 }
                 // TODO 读取之后需要解锁
                 response->set_status(true);
@@ -97,20 +104,22 @@ namespace VH{
             Status search(ServerContext * context, const SearchRequestMessage *request,
                           ServerWriter<SearchReply> *writer)
             {
+                std::cout<<"server search"<<std::endl;
                 int q_f = request->q_f();
                 int cnt = request->cnt();
+                std::cout<<"q_f"<<q_f<<std::endl;
+                std::cout<<"cnt"<<cnt<<std::endl;
                 std::string l = request->x();
-                std::vector<std::string> Result(cnt);
-                for(int i=q_f,j=0;i<q_f+cnt;++i,++j){
-                    std::string y =  Util::H_key(l,std::to_string(i));
-                    Result[j] = get(ss_db,y);
-                }
-                SearchReply reply;
-                for (auto it:Result)
-                {
-                    reply.set_ind(it);
+                std::string Result;
+                for(int i=q_f;i<q_f+cnt;++i){
+                    std::string y = Util::H_key(l,std::to_string(i));
+                    Result = get(ss_db,y);
+                    std::cout<<Result<<std::endl;
+                    SearchReply reply;
+                    reply.set_ind(Result);
                     writer->Write(reply);
                 }
+                   
                 std::cout<<"server search end!"<<std::endl;
                 return Status::OK;
             }

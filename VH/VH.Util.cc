@@ -46,8 +46,10 @@ namespace VH
                 break;
             }
         }
-        if (flag)
+        if (flag){
             std::cout << "wrong padding" << std::endl;
+            return "";
+        }
         else
             return std::string(str, 0, len - pad_len);
     }
@@ -71,8 +73,10 @@ namespace VH
                 break;
             }
         }
-        if (flag)
+        if (flag){
             std::cout << "wrong padding" << std::endl;
+            return "";
+        }
         else
             return std::string(str, 0, len - pad_len);
     }
