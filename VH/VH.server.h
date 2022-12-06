@@ -79,7 +79,7 @@ namespace VH{
             {
                 std::string l;
                 std::string e;
-                std::map<std::string,std::string> DX;
+                //std::map<std::string,std::string> DX;
                 struct timeval t1, t2;
                 int sum = 0; 
 
@@ -89,23 +89,29 @@ namespace VH{
                 {  
                     l = request.l();
                     e = request.e();
-                    DX[l]=e;
+                    //DX[l]=e;
+                    int status = store(ss_db, l, e);
+                    if (status != 0){
+                        response->set_status(false);
+                        return Status::CANCELLED;
+                    }
                     sum++;
+                    //std::cout<<sum<<std::endl;
                 }
                 // TODO 读取之后需要解锁
                 std::cout<<sum<<std::endl;
                 response->set_status(true);
-                gettimeofday(&t1, NULL);
-                for(auto i :DX){
-                    int status = store(ss_db, i.first, i.second);
-                    if (status != 0)
-                    {
-                        response->set_status(false);
-                        return Status::CANCELLED;
-                    }
-                }
-                gettimeofday(&t2, NULL);
-                std::cout<<"server time:"<<((t2.tv_sec - t1.tv_sec) * 1000000.0 + t2.tv_usec - t1.tv_usec) / 1000.0<< " ms" << std::endl;
+                // gettimeofday(&t1, NULL);
+                // for(auto i :DX){
+                //     int status = store(ss_db, i.first, i.second);
+                //     if (status != 0)
+                //     {
+                //         response->set_status(false);
+                //         return Status::CANCELLED;
+                //     }
+                // }
+                // gettimeofday(&t2, NULL);
+                // std::cout<<"server time:"<<((t2.tv_sec - t1.tv_sec) * 1000000.0 + t2.tv_usec - t1.tv_usec) / 1000.0<< " ms" << std::endl;
 
                 return Status::OK;
             }   

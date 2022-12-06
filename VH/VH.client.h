@@ -72,7 +72,10 @@ namespace VH{
             
             gettimeofday(&t1, NULL);
             std::cout<<l*fullkw.size()<<std::endl;
-            
+            ClientContext context;
+            ExecuteStatus exec_status;
+            std::unique_ptr<ClientWriterInterface<UpdateRequestMessage>> writer(stub_->update(&context, &exec_status));
+
 
             std::vector<UpdateRequestMessage> update_list(l*fullkw.size());
 
@@ -88,12 +91,15 @@ namespace VH{
                     UpdateRequestMessage request;
                     request.set_l(y);
                     request.set_e(e_value);
-                    update_list[j*l+i] = request;
+                    writer->Write(request);
+                    //update_list[j*l+i] = request;
                 }
             }
 
             gettimeofday(&t2, NULL);
-            Status status = update(update_list);
+           // Status status = update(update_list);
+            writer->WritesDone();
+            Status status = writer->Finish();
             std::cout<<"client_setup time:"<<((t2.tv_sec - t1.tv_sec) * 1000000.0 + t2.tv_usec - t1.tv_usec) / 1000.0<< " ms" << std::endl;
             std::cout<<"setup update finished"<<std::endl;
 
