@@ -10,6 +10,7 @@
 #include <grpc++/grpc++.h>
 #include <VH.Util.h>
 #include "VH.grpc.pb.h"
+//#include "omp.h"
 using grpc::Channel;
 using grpc::ClientAsyncResponseReaderInterface;
 using grpc::ClientContext;
@@ -65,53 +66,81 @@ namespace VH{
             os.close();
         }
        
-        void setup(){
-            std::cout<<"setup()"<<std::endl;
-            std::ofstream	os(MM_st_txt_path,std::ios::app);
-            
+        void setup(size_t thread_num){
+            struct timeval t1, t2;
             std::cout<<"setup update data to server"<<std::endl;
-            for(auto kw : fullkw){
-                std::map<std::string,std::string> DX;
+            
+            gettimeofday(&t1, NULL);
+            std::cout<<l*fullkw.size()<<std::endl;
+            
+
+            std::vector<UpdateRequestMessage> update_list(l*fullkw.size());
+
+            for(int j=0;j<fullkw.size();j++){
+                // #pragma omp parallel for num_threads(thread_num)
                 for(int i=0;i<l;i++){
-                    std::string x = Util::H_key(MM_st[kw].key,kw); //保护关键字
+                    std::string x = Util::H_key(MM_st[fullkw[j]].key,fullkw[j]); //保护关键字
                     std::string y = Util::H_key(x,std::to_string(i));  //产生加密索引
                     std::string e_value; 
                     std::string op = "*2"; //op取值 0：app 1: del 2:full
                     Util::encrypt(K_enc,iv,op,e_value); 
-                    DX[y] = e_value;
+
+                    UpdateRequestMessage request;
+                    request.set_l(y);
+                    request.set_e(e_value);
+                    update_list[j*l+i] = request;
                 }
-                std::vector<UpdateRequestMessage> update_list;
-                gen_update_list(update_list,DX);
-                std::cout<<"update_list.size = "<<update_list.size()<<std::endl;
-                Status status = update(update_list);
             }
-            os.close();
+
+            gettimeofday(&t2, NULL);
+            Status status = update(update_list);
+            std::cout<<"client_setup time:"<<((t2.tv_sec - t1.tv_sec) * 1000000.0 + t2.tv_usec - t1.tv_usec) / 1000.0<< " ms" << std::endl;
             std::cout<<"setup update finished"<<std::endl;
 
         }
+        Status updateDX(UpdateDXMessage updateDX)
+        {
+
+            ClientContext context;
+
+            ExecuteStatus exec_status;
+            // 执行RPC
+            Status status = stub_->updateDX(&context, updateDX, &exec_status);
+            assert(status.ok());
+
+            return status;
+        }
+
 
         void update_algorithm(std::string id,std::vector<std::string> &kw_arr,
                               std::map<std::string,std::queue<std::pair<std::string,std::string>>> &stash,
                               std::string op,int update_num)
         {
+            struct timeval t1, t2;
             std::vector<std::string> random_kw(p);
+            gettimeofday(&t1, NULL);
             gen_random_kw_array(random_kw,p);
             std::vector<std::pair<std::string,std::string>> up_op_id(p);
             write_stash_and_gen_up(random_kw,kw_arr,id,op,stash,up_op_id);
             int i=0;
-            std::map<std::string,std::string> DX;
-            for(auto kw : random_kw){
-                if(MM_st[kw].query_first+MM_st[kw].cnt_true+1>l) std::cout<<"目前更新了:"<<update_num<<"个文档"<<std::endl;
-                if(MM_st[kw].cnt_true > l) std::cout<<"需要重新构建数据库"<<std::endl;
-                std::string x = Util::H_key(MM_st[kw].key,kw); //保护关键字
-                std::string y = Util::H_key(x,std::to_string(MM_st[kw].query_first+l+1));  //产生加密索引
+            std::vector<UpdateRequestMessage> update_list(random_kw.size());
+            for(int j=0;j<random_kw.size();j++){
+                if(MM_st[random_kw[j]].query_first+MM_st[random_kw[j]].cnt_true+1>l) std::cout<<"目前更新了:"<<update_num<<"个文档"<<std::endl;
+                if(MM_st[random_kw[j]].cnt_true > l) std::cout<<"需要重新构建数据库"<<std::endl;
+                std::string x = Util::H_key(MM_st[random_kw[j]].key,random_kw[j]); //保护关键字
+                std::string y = Util::H_key(x,std::to_string(MM_st[random_kw[j]].query_first+l+1));  //产生加密索引
                 std::string e_value; 
                 Util::encrypt(K_enc,iv,up_op_id[i++].first+','+up_op_id[i++].second,e_value);
-                MM_st[kw].query_first++;
-                DX[y] = e_value;
+                MM_st[random_kw[j]].query_first++;
+
+                UpdateRequestMessage request;
+                request.set_l(y);
+                request.set_e(e_value);
+                update_list[j] = request;
             }
-            std::vector<UpdateRequestMessage> update_list;
-            gen_update_list(update_list,DX);
+            gettimeofday(&t2, NULL);
+            std::cout<<"client_update time:"<<((t2.tv_sec - t1.tv_sec) * 1000000.0 + t2.tv_usec - t1.tv_usec) / 1000.0<< " ms" << std::endl;
+
             std::cout<<"update_list.size = "<<update_list.size()<<std::endl;
             std::cout<<"update data to server"<<std::endl;
             Status status = update(update_list);
@@ -208,30 +237,21 @@ namespace VH{
         }
 
 
-        void gen_update_list(std::vector<UpdateRequestMessage>& update_list,std::map<std::string,std::string> DX){
-            for(auto i : DX){
-                UpdateRequestMessage request;
-                request.set_l(i.first);
-                request.set_e(i.second);
-                update_list.push_back(request);
-            }
-            
-        }
-
-
         Status update(std::vector<UpdateRequestMessage> update_list) {
             UpdateRequestMessage request;
 
             ClientContext context;
-
             ExecuteStatus exec_status;
 
             std::unique_ptr<ClientWriterInterface<UpdateRequestMessage>> writer(stub_->update(&context, &exec_status));
-            int i = 0;		
+
+            int i = 0;
+
             while(i < update_list.size()){
                 writer->Write(update_list[i]);
                 ++i;
             }
+
             writer->WritesDone();
             Status status = writer->Finish();
 
@@ -239,6 +259,8 @@ namespace VH{
         }
 
         void search(const std::string kw,std::map<std::string,std::queue<std::pair<std::string,std::string>>> &stash,std::unordered_set<std::string>& ID){
+            struct timeval t1;
+            gettimeofday(&t1, NULL);
             std::string x = Util::H_key(MM_st[kw].key,kw); 
             SearchRequestMessage request;
             request.set_cnt(l);
@@ -280,18 +302,24 @@ namespace VH{
             MM_st[kw].key = kw + std::to_string(rand());
             MM_st[kw].cnt_true = ID.size();
             MM_st[kw].query_first = 0;
-            re_update(ID,kw);
+            re_update(ID,kw,t1);
+
         }
 
-        void re_update(const std::unordered_set<std::string> ID,const std::string kw){
-            std::map<std::string,std::string> DX;
+        void re_update(const std::unordered_set<std::string> ID,const std::string kw, timeval t1){
+            struct timeval t2;
+            std::vector<UpdateRequestMessage> update_list(l);
             for(int i=0;i<l-ID.size();i++){
                 std::string x = Util::H_key(MM_st[kw].key,kw); //保护关键字
                 std::string y = Util::H_key(x,std::to_string(i));  //产生加密索引
                 std::string e_value; 
                 char op = '2'; //op取值 0：app 1: del 2:full
                 Util::encrypt(K_enc,iv,"*"+op,e_value); 
-                DX[y] = e_value;
+
+                UpdateRequestMessage request;
+                request.set_l(y);
+                request.set_e(e_value);
+                update_list[i] = request;
             }
             int i=l-ID.size();
             for(auto j : ID){
@@ -299,12 +327,14 @@ namespace VH{
                 std::string y = Util::H_key(x,std::to_string(i));  //产生加密索引
                 std::string e_value; 
                 Util::encrypt(K_enc,iv,"0,"+j,e_value);
-                DX[y] = e_value;
+                UpdateRequestMessage request;
+                request.set_l(y);
+                request.set_e(e_value);
+                update_list[i] = request;
                 i++;
             }
-            std::vector<UpdateRequestMessage> update_list;
-            gen_update_list(update_list,DX);
-            std::cout<<"re_update_list.size = "<<update_list.size()<<std::endl;
+            gettimeofday(&t2, NULL);
+            std::cout<<"client_search time:"<<((t2.tv_sec - t1.tv_sec) * 1000000.0 + t2.tv_usec - t1.tv_usec) / 1000.0<< " ms" << std::endl;
             std::cout<<"re_update  data to server"<<std::endl;
             Status status = update(update_list);
             std::cout<<"re_update finished"<<std::endl;

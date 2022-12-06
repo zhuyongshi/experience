@@ -33,7 +33,6 @@ int main(int argc, char **argv){
     std::cout<<"search start"<<std::endl;
     client.search(kw,stash,Result);
     std::cout<<"search end"<<std::endl;
-
     for(auto i : Result){
         std::cout<<i<<" ";
     }

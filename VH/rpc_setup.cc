@@ -8,24 +8,32 @@
 #include "VH.Util.h"
 #include <chrono> // 是一个time library ，源于boost库，已经是c++标准了
 #include <bits/stdc++.h>
+//#include "omp.h"
+
 
 
 int main(int argc, char **argv)
 {
+    // test(3);
+    // return 0;
     if (argc < 4)
     {
         std::cerr << "参数个数小于2个" << std::endl;
         exit(-1);
     }
     size_t thread_num = atoi(argv[5]);
+    // omp_set_num_threads(thread_num);
     //不同的数据集对应着不同的n、l
     int n = atoi(argv[3]);
     int l = atoi(argv[4]);
     std::string MM_st_path=argv[2];
     VH::Client client(grpc::CreateChannel("127.0.0.1:50051", grpc::InsecureChannelCredentials()), std::string(argv[1]),MM_st_path,n,l);
+    
     std::cout << "setup开始！" << std::endl;
-    client.setup();
+    std::cout << thread_num << std::endl;
+    client.setup(thread_num);
     std::cout << "setup结束！" << std::endl;
+   
     return 0;
 }
 

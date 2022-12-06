@@ -16,7 +16,8 @@ rpc search (SearchRequestMessage) returns (stream SearchReply) {}
 // Update
 rpc update (stream UpdateRequestMessage) returns ( ExecuteStatus ) {}
 
-
+//Update DX
+rpc updateDX ( UpdateDXMessage ) returns ( ExecuteStatus ) {}
 }
 
 
@@ -24,8 +25,19 @@ message UpdateRequestMessage
 {
     bytes l = 1;
     bytes e = 2;
+    
 }
 
+message PairMessage
+{
+    bytes l = 1;
+    bytes e = 2;
+}
+
+message UpdateDXMessage
+{
+    repeated PairMessage e_dx = 1;
+}
 message SearchRequestMessage
 {
     bytes x = 1;

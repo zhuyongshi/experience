@@ -24,6 +24,7 @@ namespace VH {
 static const char* RPC_method_names[] = {
   "/VH.RPC/search",
   "/VH.RPC/update",
+  "/VH.RPC/updateDX",
 };
 
 std::unique_ptr< RPC::Stub> RPC::NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options) {
@@ -35,6 +36,7 @@ std::unique_ptr< RPC::Stub> RPC::NewStub(const std::shared_ptr< ::grpc::ChannelI
 RPC::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options)
   : channel_(channel), rpcmethod_search_(RPC_method_names[0], options.suffix_for_stats(),::grpc::internal::RpcMethod::SERVER_STREAMING, channel)
   , rpcmethod_update_(RPC_method_names[1], options.suffix_for_stats(),::grpc::internal::RpcMethod::CLIENT_STREAMING, channel)
+  , rpcmethod_updateDX_(RPC_method_names[2], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   {}
 
 ::grpc::ClientReader< ::VH::SearchReply>* RPC::Stub::searchRaw(::grpc::ClientContext* context, const ::VH::SearchRequestMessage& request) {
@@ -69,6 +71,29 @@ void RPC::Stub::async::update(::grpc::ClientContext* context, ::VH::ExecuteStatu
   return ::grpc::internal::ClientAsyncWriterFactory< ::VH::UpdateRequestMessage>::Create(channel_.get(), cq, rpcmethod_update_, context, response, false, nullptr);
 }
 
+::grpc::Status RPC::Stub::updateDX(::grpc::ClientContext* context, const ::VH::UpdateDXMessage& request, ::VH::ExecuteStatus* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::VH::UpdateDXMessage, ::VH::ExecuteStatus, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_updateDX_, context, request, response);
+}
+
+void RPC::Stub::async::updateDX(::grpc::ClientContext* context, const ::VH::UpdateDXMessage* request, ::VH::ExecuteStatus* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::VH::UpdateDXMessage, ::VH::ExecuteStatus, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_updateDX_, context, request, response, std::move(f));
+}
+
+void RPC::Stub::async::updateDX(::grpc::ClientContext* context, const ::VH::UpdateDXMessage* request, ::VH::ExecuteStatus* response, ::grpc::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_updateDX_, context, request, response, reactor);
+}
+
+::grpc::ClientAsyncResponseReader< ::VH::ExecuteStatus>* RPC::Stub::PrepareAsyncupdateDXRaw(::grpc::ClientContext* context, const ::VH::UpdateDXMessage& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::VH::ExecuteStatus, ::VH::UpdateDXMessage, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_updateDX_, context, request);
+}
+
+::grpc::ClientAsyncResponseReader< ::VH::ExecuteStatus>* RPC::Stub::AsyncupdateDXRaw(::grpc::ClientContext* context, const ::VH::UpdateDXMessage& request, ::grpc::CompletionQueue* cq) {
+  auto* result =
+    this->PrepareAsyncupdateDXRaw(context, request, cq);
+  result->StartCall();
+  return result;
+}
+
 RPC::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       RPC_method_names[0],
@@ -90,6 +115,16 @@ RPC::Service::Service() {
              ::VH::ExecuteStatus* resp) {
                return service->update(ctx, reader, resp);
              }, this)));
+  AddMethod(new ::grpc::internal::RpcServiceMethod(
+      RPC_method_names[2],
+      ::grpc::internal::RpcMethod::NORMAL_RPC,
+      new ::grpc::internal::RpcMethodHandler< RPC::Service, ::VH::UpdateDXMessage, ::VH::ExecuteStatus, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+          [](RPC::Service* service,
+             ::grpc::ServerContext* ctx,
+             const ::VH::UpdateDXMessage* req,
+             ::VH::ExecuteStatus* resp) {
+               return service->updateDX(ctx, req, resp);
+             }, this)));
 }
 
 RPC::Service::~Service() {
@@ -105,6 +140,13 @@ RPC::Service::~Service() {
 ::grpc::Status RPC::Service::update(::grpc::ServerContext* context, ::grpc::ServerReader< ::VH::UpdateRequestMessage>* reader, ::VH::ExecuteStatus* response) {
   (void) context;
   (void) reader;
+  (void) response;
+  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+}
+
+::grpc::Status RPC::Service::updateDX(::grpc::ServerContext* context, const ::VH::UpdateDXMessage* request, ::VH::ExecuteStatus* response) {
+  (void) context;
+  (void) request;
   (void) response;
   return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
 }

@@ -40,7 +40,6 @@ int main(int argc, char **argv)
         j++;
         if(j>update_num) break;
     }
-    
     VH::write_stash_txt(stash_path,stash);
     std::cout << "update结束!" << std::endl;
     return 0;

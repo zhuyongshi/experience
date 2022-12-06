@@ -60,6 +60,14 @@ class RPC final {
     std::unique_ptr< ::grpc::ClientAsyncWriterInterface< ::VH::UpdateRequestMessage>> PrepareAsyncupdate(::grpc::ClientContext* context, ::VH::ExecuteStatus* response, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncWriterInterface< ::VH::UpdateRequestMessage>>(PrepareAsyncupdateRaw(context, response, cq));
     }
+    // Update DX
+    virtual ::grpc::Status updateDX(::grpc::ClientContext* context, const ::VH::UpdateDXMessage& request, ::VH::ExecuteStatus* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::VH::ExecuteStatus>> AsyncupdateDX(::grpc::ClientContext* context, const ::VH::UpdateDXMessage& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::VH::ExecuteStatus>>(AsyncupdateDXRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::VH::ExecuteStatus>> PrepareAsyncupdateDX(::grpc::ClientContext* context, const ::VH::UpdateDXMessage& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::VH::ExecuteStatus>>(PrepareAsyncupdateDXRaw(context, request, cq));
+    }
     class async_interface {
      public:
       virtual ~async_interface() {}
@@ -67,6 +75,9 @@ class RPC final {
       virtual void search(::grpc::ClientContext* context, const ::VH::SearchRequestMessage* request, ::grpc::ClientReadReactor< ::VH::SearchReply>* reactor) = 0;
       // Update
       virtual void update(::grpc::ClientContext* context, ::VH::ExecuteStatus* response, ::grpc::ClientWriteReactor< ::VH::UpdateRequestMessage>* reactor) = 0;
+      // Update DX
+      virtual void updateDX(::grpc::ClientContext* context, const ::VH::UpdateDXMessage* request, ::VH::ExecuteStatus* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void updateDX(::grpc::ClientContext* context, const ::VH::UpdateDXMessage* request, ::VH::ExecuteStatus* response, ::grpc::ClientUnaryReactor* reactor) = 0;
     };
     typedef class async_interface experimental_async_interface;
     virtual class async_interface* async() { return nullptr; }
@@ -78,6 +89,8 @@ class RPC final {
     virtual ::grpc::ClientWriterInterface< ::VH::UpdateRequestMessage>* updateRaw(::grpc::ClientContext* context, ::VH::ExecuteStatus* response) = 0;
     virtual ::grpc::ClientAsyncWriterInterface< ::VH::UpdateRequestMessage>* AsyncupdateRaw(::grpc::ClientContext* context, ::VH::ExecuteStatus* response, ::grpc::CompletionQueue* cq, void* tag) = 0;
     virtual ::grpc::ClientAsyncWriterInterface< ::VH::UpdateRequestMessage>* PrepareAsyncupdateRaw(::grpc::ClientContext* context, ::VH::ExecuteStatus* response, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::VH::ExecuteStatus>* AsyncupdateDXRaw(::grpc::ClientContext* context, const ::VH::UpdateDXMessage& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::VH::ExecuteStatus>* PrepareAsyncupdateDXRaw(::grpc::ClientContext* context, const ::VH::UpdateDXMessage& request, ::grpc::CompletionQueue* cq) = 0;
   };
   class Stub final : public StubInterface {
    public:
@@ -100,11 +113,20 @@ class RPC final {
     std::unique_ptr< ::grpc::ClientAsyncWriter< ::VH::UpdateRequestMessage>> PrepareAsyncupdate(::grpc::ClientContext* context, ::VH::ExecuteStatus* response, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncWriter< ::VH::UpdateRequestMessage>>(PrepareAsyncupdateRaw(context, response, cq));
     }
+    ::grpc::Status updateDX(::grpc::ClientContext* context, const ::VH::UpdateDXMessage& request, ::VH::ExecuteStatus* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::VH::ExecuteStatus>> AsyncupdateDX(::grpc::ClientContext* context, const ::VH::UpdateDXMessage& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::VH::ExecuteStatus>>(AsyncupdateDXRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::VH::ExecuteStatus>> PrepareAsyncupdateDX(::grpc::ClientContext* context, const ::VH::UpdateDXMessage& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::VH::ExecuteStatus>>(PrepareAsyncupdateDXRaw(context, request, cq));
+    }
     class async final :
       public StubInterface::async_interface {
      public:
       void search(::grpc::ClientContext* context, const ::VH::SearchRequestMessage* request, ::grpc::ClientReadReactor< ::VH::SearchReply>* reactor) override;
       void update(::grpc::ClientContext* context, ::VH::ExecuteStatus* response, ::grpc::ClientWriteReactor< ::VH::UpdateRequestMessage>* reactor) override;
+      void updateDX(::grpc::ClientContext* context, const ::VH::UpdateDXMessage* request, ::VH::ExecuteStatus* response, std::function<void(::grpc::Status)>) override;
+      void updateDX(::grpc::ClientContext* context, const ::VH::UpdateDXMessage* request, ::VH::ExecuteStatus* response, ::grpc::ClientUnaryReactor* reactor) override;
      private:
       friend class Stub;
       explicit async(Stub* stub): stub_(stub) { }
@@ -122,8 +144,11 @@ class RPC final {
     ::grpc::ClientWriter< ::VH::UpdateRequestMessage>* updateRaw(::grpc::ClientContext* context, ::VH::ExecuteStatus* response) override;
     ::grpc::ClientAsyncWriter< ::VH::UpdateRequestMessage>* AsyncupdateRaw(::grpc::ClientContext* context, ::VH::ExecuteStatus* response, ::grpc::CompletionQueue* cq, void* tag) override;
     ::grpc::ClientAsyncWriter< ::VH::UpdateRequestMessage>* PrepareAsyncupdateRaw(::grpc::ClientContext* context, ::VH::ExecuteStatus* response, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::VH::ExecuteStatus>* AsyncupdateDXRaw(::grpc::ClientContext* context, const ::VH::UpdateDXMessage& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::VH::ExecuteStatus>* PrepareAsyncupdateDXRaw(::grpc::ClientContext* context, const ::VH::UpdateDXMessage& request, ::grpc::CompletionQueue* cq) override;
     const ::grpc::internal::RpcMethod rpcmethod_search_;
     const ::grpc::internal::RpcMethod rpcmethod_update_;
+    const ::grpc::internal::RpcMethod rpcmethod_updateDX_;
   };
   static std::unique_ptr<Stub> NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options = ::grpc::StubOptions());
 
@@ -135,6 +160,8 @@ class RPC final {
     virtual ::grpc::Status search(::grpc::ServerContext* context, const ::VH::SearchRequestMessage* request, ::grpc::ServerWriter< ::VH::SearchReply>* writer);
     // Update
     virtual ::grpc::Status update(::grpc::ServerContext* context, ::grpc::ServerReader< ::VH::UpdateRequestMessage>* reader, ::VH::ExecuteStatus* response);
+    // Update DX
+    virtual ::grpc::Status updateDX(::grpc::ServerContext* context, const ::VH::UpdateDXMessage* request, ::VH::ExecuteStatus* response);
   };
   template <class BaseClass>
   class WithAsyncMethod_search : public BaseClass {
@@ -176,7 +203,27 @@ class RPC final {
       ::grpc::Service::RequestAsyncClientStreaming(1, context, reader, new_call_cq, notification_cq, tag);
     }
   };
-  typedef WithAsyncMethod_search<WithAsyncMethod_update<Service > > AsyncService;
+  template <class BaseClass>
+  class WithAsyncMethod_updateDX : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithAsyncMethod_updateDX() {
+      ::grpc::Service::MarkMethodAsync(2);
+    }
+    ~WithAsyncMethod_updateDX() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status updateDX(::grpc::ServerContext* /*context*/, const ::VH::UpdateDXMessage* /*request*/, ::VH::ExecuteStatus* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestupdateDX(::grpc::ServerContext* context, ::VH::UpdateDXMessage* request, ::grpc::ServerAsyncResponseWriter< ::VH::ExecuteStatus>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(2, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  typedef WithAsyncMethod_search<WithAsyncMethod_update<WithAsyncMethod_updateDX<Service > > > AsyncService;
   template <class BaseClass>
   class WithCallbackMethod_search : public BaseClass {
    private:
@@ -221,7 +268,34 @@ class RPC final {
     virtual ::grpc::ServerReadReactor< ::VH::UpdateRequestMessage>* update(
       ::grpc::CallbackServerContext* /*context*/, ::VH::ExecuteStatus* /*response*/)  { return nullptr; }
   };
-  typedef WithCallbackMethod_search<WithCallbackMethod_update<Service > > CallbackService;
+  template <class BaseClass>
+  class WithCallbackMethod_updateDX : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithCallbackMethod_updateDX() {
+      ::grpc::Service::MarkMethodCallback(2,
+          new ::grpc::internal::CallbackUnaryHandler< ::VH::UpdateDXMessage, ::VH::ExecuteStatus>(
+            [this](
+                   ::grpc::CallbackServerContext* context, const ::VH::UpdateDXMessage* request, ::VH::ExecuteStatus* response) { return this->updateDX(context, request, response); }));}
+    void SetMessageAllocatorFor_updateDX(
+        ::grpc::MessageAllocator< ::VH::UpdateDXMessage, ::VH::ExecuteStatus>* allocator) {
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(2);
+      static_cast<::grpc::internal::CallbackUnaryHandler< ::VH::UpdateDXMessage, ::VH::ExecuteStatus>*>(handler)
+              ->SetMessageAllocator(allocator);
+    }
+    ~WithCallbackMethod_updateDX() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status updateDX(::grpc::ServerContext* /*context*/, const ::VH::UpdateDXMessage* /*request*/, ::VH::ExecuteStatus* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerUnaryReactor* updateDX(
+      ::grpc::CallbackServerContext* /*context*/, const ::VH::UpdateDXMessage* /*request*/, ::VH::ExecuteStatus* /*response*/)  { return nullptr; }
+  };
+  typedef WithCallbackMethod_search<WithCallbackMethod_update<WithCallbackMethod_updateDX<Service > > > CallbackService;
   typedef CallbackService ExperimentalCallbackService;
   template <class BaseClass>
   class WithGenericMethod_search : public BaseClass {
@@ -253,6 +327,23 @@ class RPC final {
     }
     // disable synchronous version of this method
     ::grpc::Status update(::grpc::ServerContext* /*context*/, ::grpc::ServerReader< ::VH::UpdateRequestMessage>* /*reader*/, ::VH::ExecuteStatus* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+  };
+  template <class BaseClass>
+  class WithGenericMethod_updateDX : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithGenericMethod_updateDX() {
+      ::grpc::Service::MarkMethodGeneric(2);
+    }
+    ~WithGenericMethod_updateDX() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status updateDX(::grpc::ServerContext* /*context*/, const ::VH::UpdateDXMessage* /*request*/, ::VH::ExecuteStatus* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
@@ -295,6 +386,26 @@ class RPC final {
     }
     void Requestupdate(::grpc::ServerContext* context, ::grpc::ServerAsyncReader< ::grpc::ByteBuffer, ::grpc::ByteBuffer>* reader, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncClientStreaming(1, context, reader, new_call_cq, notification_cq, tag);
+    }
+  };
+  template <class BaseClass>
+  class WithRawMethod_updateDX : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawMethod_updateDX() {
+      ::grpc::Service::MarkMethodRaw(2);
+    }
+    ~WithRawMethod_updateDX() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status updateDX(::grpc::ServerContext* /*context*/, const ::VH::UpdateDXMessage* /*request*/, ::VH::ExecuteStatus* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestupdateDX(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(2, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -341,7 +452,56 @@ class RPC final {
     virtual ::grpc::ServerReadReactor< ::grpc::ByteBuffer>* update(
       ::grpc::CallbackServerContext* /*context*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
   };
-  typedef Service StreamedUnaryService;
+  template <class BaseClass>
+  class WithRawCallbackMethod_updateDX : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawCallbackMethod_updateDX() {
+      ::grpc::Service::MarkMethodRawCallback(2,
+          new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+            [this](
+                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->updateDX(context, request, response); }));
+    }
+    ~WithRawCallbackMethod_updateDX() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status updateDX(::grpc::ServerContext* /*context*/, const ::VH::UpdateDXMessage* /*request*/, ::VH::ExecuteStatus* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerUnaryReactor* updateDX(
+      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
+  };
+  template <class BaseClass>
+  class WithStreamedUnaryMethod_updateDX : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithStreamedUnaryMethod_updateDX() {
+      ::grpc::Service::MarkMethodStreamed(2,
+        new ::grpc::internal::StreamedUnaryHandler<
+          ::VH::UpdateDXMessage, ::VH::ExecuteStatus>(
+            [this](::grpc::ServerContext* context,
+                   ::grpc::ServerUnaryStreamer<
+                     ::VH::UpdateDXMessage, ::VH::ExecuteStatus>* streamer) {
+                       return this->StreamedupdateDX(context,
+                         streamer);
+                  }));
+    }
+    ~WithStreamedUnaryMethod_updateDX() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable regular version of this method
+    ::grpc::Status updateDX(::grpc::ServerContext* /*context*/, const ::VH::UpdateDXMessage* /*request*/, ::VH::ExecuteStatus* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    // replace default version of method with streamed unary
+    virtual ::grpc::Status StreamedupdateDX(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::VH::UpdateDXMessage,::VH::ExecuteStatus>* server_unary_streamer) = 0;
+  };
+  typedef WithStreamedUnaryMethod_updateDX<Service > StreamedUnaryService;
   template <class BaseClass>
   class WithSplitStreamingMethod_search : public BaseClass {
    private:
@@ -370,7 +530,7 @@ class RPC final {
     virtual ::grpc::Status Streamedsearch(::grpc::ServerContext* context, ::grpc::ServerSplitStreamer< ::VH::SearchRequestMessage,::VH::SearchReply>* server_split_streamer) = 0;
   };
   typedef WithSplitStreamingMethod_search<Service > SplitStreamedService;
-  typedef WithSplitStreamingMethod_search<Service > StreamedService;
+  typedef WithSplitStreamingMethod_search<WithStreamedUnaryMethod_updateDX<Service > > StreamedService;
 };
 
 }  // namespace VH

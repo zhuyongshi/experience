@@ -53,7 +53,7 @@ namespace VH{
                     s = db->Put(write_option, l, e);
                 }
                 if (s.ok()){
-                    std::cout<<l<<" "<<e<<std::endl;
+                    // std::cout<<l<<" "<<e<<std::endl;
                     return 0;
                 }
                 else
@@ -79,27 +79,54 @@ namespace VH{
             {
                 std::string l;
                 std::string e;
+                std::map<std::string,std::string> DX;
+                struct timeval t1, t2;
                 int sum = 0;
-                // TODO 读取数据库之前要加锁，读取之后要解锁
+            
+                gettimeofday(&t1, NULL);
                 std::cout << "更新批量的键值对！" << std::endl;
                 UpdateRequestMessage request;
                 while (reader->Read(&request))
-                {
+                {  
                     l = request.l();
                     e = request.e();
-                    int status = store(ss_db, l, e);
+                    DX[l]=e;
+                    sum++;
+                    
+                }
+                // TODO 读取之后需要解锁
+                gettimeofday(&t2, NULL);
+                std::cout<<sum<<std::endl;
+                std::cout<<"server time:"<<((t2.tv_sec - t1.tv_sec) * 1000000.0 + t2.tv_usec - t1.tv_usec) / 1000.0<< " ms" << std::endl;
+                response->set_status(true);
+
+                for(auto i :DX){
+                    int status = store(ss_db, i.first, i.second);
                     if (status != 0)
                     {
                         response->set_status(false);
                         return Status::CANCELLED;
                     }
-                    // sum++;
-                    // std::cout<<sum<<std::endl;
                 }
-                // TODO 读取之后需要解锁
-                response->set_status(true);
                 return Status::OK;
             }   
+
+            Status updateDX(ServerContext * context, const UpdateDXMessage *request, ExecuteStatus *response)
+            {
+                for(int i=0;i<request->e_dx_size();i++){
+                    PairMessage e_pair1 = request->e_dx(i); 
+                    int status = store(ss_db, e_pair1.l(), e_pair1.e());
+                    if (status != 0)
+                    {
+                        response->set_status(false);
+                        return Status::CANCELLED;
+                    }
+                    response->set_status(true);
+                    return Status::OK;
+                }
+                return Status::OK;
+                
+            }
 
             Status search(ServerContext * context, const SearchRequestMessage *request,
                           ServerWriter<SearchReply> *writer)
@@ -107,14 +134,12 @@ namespace VH{
                 std::cout<<"server search"<<std::endl;
                 int q_f = request->q_f();
                 int cnt = request->cnt();
-                std::cout<<"q_f"<<q_f<<std::endl;
-                std::cout<<"cnt"<<cnt<<std::endl;
                 std::string l = request->x();
                 std::string Result;
                 for(int i=q_f;i<q_f+cnt;++i){
                     std::string y = Util::H_key(l,std::to_string(i));
                     Result = get(ss_db,y);
-                    std::cout<<Result<<std::endl;
+                    // std::cout<<Result<<std::endl;
                     SearchReply reply;
                     reply.set_ind(Result);
                     writer->Write(reply);
