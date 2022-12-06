@@ -81,9 +81,8 @@ namespace VH{
                 std::string e;
                 std::map<std::string,std::string> DX;
                 struct timeval t1, t2;
-                int sum = 0;
-            
-                gettimeofday(&t1, NULL);
+                int sum = 0; 
+
                 std::cout << "更新批量的键值对！" << std::endl;
                 UpdateRequestMessage request;
                 while (reader->Read(&request))
@@ -92,14 +91,11 @@ namespace VH{
                     e = request.e();
                     DX[l]=e;
                     sum++;
-                    
                 }
                 // TODO 读取之后需要解锁
-                gettimeofday(&t2, NULL);
                 std::cout<<sum<<std::endl;
-                std::cout<<"server time:"<<((t2.tv_sec - t1.tv_sec) * 1000000.0 + t2.tv_usec - t1.tv_usec) / 1000.0<< " ms" << std::endl;
                 response->set_status(true);
-
+                gettimeofday(&t1, NULL);
                 for(auto i :DX){
                     int status = store(ss_db, i.first, i.second);
                     if (status != 0)
@@ -108,6 +104,9 @@ namespace VH{
                         return Status::CANCELLED;
                     }
                 }
+                gettimeofday(&t2, NULL);
+                std::cout<<"server time:"<<((t2.tv_sec - t1.tv_sec) * 1000000.0 + t2.tv_usec - t1.tv_usec) / 1000.0<< " ms" << std::endl;
+
                 return Status::OK;
             }   
 
