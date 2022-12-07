@@ -128,22 +128,26 @@ namespace VH{
             gen_random_kw_array(random_kw,p);
             std::vector<std::pair<std::string,std::string>> up_op_id(p);
             write_stash_and_gen_up(random_kw,kw_arr,id,op,stash,up_op_id);
-            int i=0;
+            for(auto i : up_op_id){
+                std::cout<<i.first<<" "<<i.second<<std::endl;
+            }
+            
             std::vector<UpdateRequestMessage> update_list(random_kw.size());
-            for(int j=0;j<random_kw.size();j++){
-                if(MM_st[random_kw[j]].query_first+MM_st[random_kw[j]].cnt_true+1>l) std::cout<<"目前更新了:"<<update_num<<"个文档"<<std::endl;
-                if(MM_st[random_kw[j]].cnt_true > l) std::cout<<"需要重新构建数据库"<<std::endl;
-                std::string x = Util::H_key(MM_st[random_kw[j]].key,random_kw[j]); //保护关键字
-                std::string y = Util::H_key(x,std::to_string(MM_st[random_kw[j]].query_first+l+1));  //产生加密索引
+            for(int i=0;i<random_kw.size();i++){
+                if(MM_st[random_kw[i]].query_first+MM_st[random_kw[i]].cnt_true+1>l) std::cout<<"目前更新了:"<<update_num<<"个文档"<<std::endl;
+                if(MM_st[random_kw[i]].cnt_true > l) std::cout<<"需要重新构建数据库"<<std::endl;
+                std::string x = Util::H_key(MM_st[random_kw[i]].key,random_kw[i]); //保护关键字
+                std::string y = Util::H_key(x,std::to_string(MM_st[random_kw[i]].query_first+1));  //产生加密索引
                 std::string e_value; 
-                Util::encrypt(K_enc,iv,up_op_id[i++].first+','+up_op_id[i++].second,e_value);
-                MM_st[random_kw[j]].query_first++;
+                Util::encrypt(K_enc,iv,up_op_id[i].first+','+up_op_id[i].second,e_value);
+                MM_st[random_kw[i]].query_first++;
 
                 UpdateRequestMessage request;
                 request.set_l(y);
                 request.set_e(e_value);
-                update_list[j] = request;
+                update_list[i] = request;
             }
+            
             gettimeofday(&t2, NULL);
             std::cout<<"client_update time:"<<((t2.tv_sec - t1.tv_sec) * 1000000.0 + t2.tv_usec - t1.tv_usec) / 1000.0<< " ms" << std::endl;
 
@@ -179,13 +183,13 @@ namespace VH{
             //在抽样列表里面，不在真kw里面，又在stash里面，则从stash里面拿出来
             for(int i=0;i<random_kw.size();i++){
                 if(stash.find(random_kw[i])!=stash.end() && stash[random_kw[i]].size()>0 && set_kw.find(random_kw[i])==set_kw.end()){
-                    up_op_id.push_back(stash[random_kw[i]].front());
+                    up_op_id[i]=stash[random_kw[i]].front();
                     stash[random_kw[i]].pop();
                 }else{
                     if(set_kw.find(random_kw[i])!=set_kw.end())
-                        up_op_id.push_back(temp_op_id);
+                        up_op_id[i]=temp_op_id;
                     else
-                        up_op_id.push_back({temp_op_id.first,temp_op_id.second+'*'});
+                        up_op_id[i]={temp_op_id.first,temp_op_id.second+'*'};
                 }
             }
         }        
@@ -265,24 +269,51 @@ namespace VH{
         }
 
         void search(const std::string kw,std::map<std::string,std::queue<std::pair<std::string,std::string>>> &stash,std::unordered_set<std::string>& ID){
-            struct timeval t1;
+            std::cout<<"client search"<<std::endl;
+            struct timeval t1,t2;
             gettimeofday(&t1, NULL);
             std::string x = Util::H_key(MM_st[kw].key,kw); 
             SearchRequestMessage request;
             request.set_cnt(l);
-            request.set_q_f(MM_st[kw].query_first);
+            if(l-MM_st[kw].query_first >=0) request.set_q_f(0);
+            else request.set_q_f(MM_st[kw].query_first-l);
             request.set_x(x);
+
             ClientContext context;
             std::unique_ptr<ClientReaderInterface<SearchReply>> reader = stub_->search(&context, request);
+            gettimeofday(&t2, NULL);
+            std::cout<<"time1:"<<((t2.tv_sec - t1.tv_sec) * 1000000.0 + t2.tv_usec - t1.tv_usec) / 1000.0<< " ms" << std::endl;
+
+
            //这里获得了从server端返回的真实且经过op操作以后的id列表。
            //读取返回列表：
             SearchReply reply;
             MM_st[kw].cnt_true = 0;
-            std::cout<<"client search"<<std::endl;
+            
+            std::vector<std::string> response(l);
+            int i = 0;
             while(reader->Read(&reply)){
+                response[i] = reply.ind();
+                // std::string op_id;
+                // Util::descrypt(K_enc,iv,reply.ind(),op_id);
+                // //std::cout<<op_id<<std::endl;
+                // if(op_id.find('*')<0){
+                //     //找不到‘*’代表是真的
+                //     int i = op_id.find(',');
+                //     std::string id = op_id.substr(i+1,op_id.size()) ;
+                //     std::string op = op_id.substr(0,i);
+                //     if(op == "0")  ID.insert(id);
+                //     else if(op == "1"){
+                //         if(ID.find(id) != ID.end())  ID.erase(id);
+                //     }
+                // }
+            }
+            struct timeval t3;
+            gettimeofday(&t3, NULL);
+            for(auto r : response){
                 std::string op_id;
-                Util::descrypt(K_enc,iv,reply.ind(),op_id);
-                std::cout<<op_id<<std::endl;
+                Util::descrypt(K_enc,iv,r,op_id);
+                //std::cout<<op_id<<std::endl;
                 if(op_id.find('*')<0){
                     //找不到‘*’代表是真的
                     int i = op_id.find(',');
@@ -308,7 +339,7 @@ namespace VH{
             MM_st[kw].key = kw + std::to_string(rand());
             MM_st[kw].cnt_true = ID.size();
             MM_st[kw].query_first = 0;
-            re_update(ID,kw,t1);
+            re_update(ID,kw,t3);
 
         }
 
@@ -340,7 +371,8 @@ namespace VH{
                 i++;
             }
             gettimeofday(&t2, NULL);
-            std::cout<<"client_search time:"<<((t2.tv_sec - t1.tv_sec) * 1000000.0 + t2.tv_usec - t1.tv_usec) / 1000.0<< " ms" << std::endl;
+            std::cout<<"time2:"<<((t2.tv_sec - t1.tv_sec) * 1000000.0 + t2.tv_usec - t1.tv_usec) / 1000.0<< " ms" << std::endl;
+            
             std::cout<<"re_update  data to server"<<std::endl;
             Status status = update(update_list);
             std::cout<<"re_update finished"<<std::endl;

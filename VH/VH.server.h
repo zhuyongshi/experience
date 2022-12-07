@@ -20,6 +20,8 @@ using grpc::ServerWriter;
 using grpc::Status;
 
 using namespace CryptoPP;
+std::string iv = "0123456789abcdef";
+std::string K_enc = "abcdefghijklmnopq";
 
 namespace VH{
     
@@ -66,7 +68,7 @@ namespace VH{
                 rocksdb::Status s;
                 {
                     s = db->Get(rocksdb::ReadOptions(), l, &tmp);
-                    std::cout<<tmp<<std::endl;
+                    //std::cout<<tmp<<std::endl;
                 }
                 if (s.ok())
                     return tmp;
@@ -139,17 +141,26 @@ namespace VH{
                 std::cout<<"server search"<<std::endl;
                 int q_f = request->q_f();
                 int cnt = request->cnt();
-                std::string l = request->x();
-                std::string Result;
-                for(int i=q_f;i<q_f+cnt;++i){
-                    std::string y = Util::H_key(l,std::to_string(i));
-                    Result = get(ss_db,y);
-                    // std::cout<<Result<<std::endl;
+                std::string x = request->x();
+                std::vector<std::string> Result(cnt);
+                // struct timeval t1, t2;
+                // gettimeofday(&t1, NULL);
+                for(int i=q_f,j=0;i<q_f+cnt;++i,++j){
+                    std::string y = Util::H_key(x,std::to_string(i));
+                    Result [j]= get(ss_db,y);
+                }
+                // gettimeofday(&t2, NULL);
+                // std::cout<<"time1:"<<((t2.tv_sec - t1.tv_sec) * 1000000.0 + t2.tv_usec - t1.tv_usec) / 1000.0<< " ms" << std::endl;
+                struct timeval t3, t4;
+                gettimeofday(&t3, NULL);
+                for(auto i : Result){
                     SearchReply reply;
-                    reply.set_ind(Result);
+                    reply.set_ind(i);
                     writer->Write(reply);
                 }
-                   
+                gettimeofday(&t4, NULL);
+                std::cout<<"time:"<<((t4.tv_sec - t3.tv_sec) * 1000000.0 + t4.tv_usec - t3.tv_usec) / 1000.0<< " ms" << std::endl;
+
                 std::cout<<"server search end!"<<std::endl;
                 return Status::OK;
             }

@@ -38,7 +38,7 @@ int main(int argc, char **argv)
     for(auto i : order_MM){
         client.update_algorithm(i.first,i.second,stash,"0",j);
         j++;
-        if(j>update_num) break;
+        if(j>=update_num) break;
     }
     VH::write_stash_txt(stash_path,stash);
     std::cout << "update结束!" << std::endl;
