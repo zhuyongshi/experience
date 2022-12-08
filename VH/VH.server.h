@@ -31,9 +31,10 @@ namespace VH{
             int MAX_THREADS; //最大线程数
             rocksdb::Options options;
             std::unordered_map<std::string,std::string> DX;
+            std::string dx_path;
         
         public:
-            VHServiceImpl(const std::string db_path, int concurrent)
+            VHServiceImpl(const std::string db_path, int concurrent,const std::string dx_path_p)
             {
                 signal(SIGINT, abort); //中断信号，缺省行为终止进程
                 options.create_if_missing = true;
@@ -41,6 +42,7 @@ namespace VH{
                 rocksdb::Status s1 = rocksdb::DB::Open(options, db_path, &ss_db);
                 MAX_THREADS = concurrent; 
                 DX["test"] = "test";
+                dx_path=dx_path_p;
             }
             static void abort(int signum)
             {
@@ -138,9 +140,19 @@ namespace VH{
                     sum++;
                     //std::cout<<sum<<std::endl;
                 }
+
                 std::cout<<sum<<std::endl;
+                write_dx_txt();
                 response->set_status(true);
                 return Status::OK;
+            }
+
+            void write_dx_txt(){
+                std::ofstream	os(dx_path,std::ios::app);
+                for(auto i : DX){
+                    os<<i.first<<" "<<i.second<<"\n";
+                }
+                os.close();
             }
 
             Status updateDX(ServerContext * context, const UpdateDXMessage *request, ExecuteStatus *response)
@@ -228,10 +240,10 @@ namespace VH{
 
     //静态成员在主函数外部声明
     rocksdb::DB *VH::VHServiceImpl::ss_db;
-    void RunServer(std::string db_path, int concurrent)
+    void RunServer(std::string db_path, int concurrent,std::string dx_path)
     {
         std::string server_address("0.0.0.0:50051"); //可修改服务器地址0.0.0.0
-        VH::VHServiceImpl service(db_path,concurrent);
+        VH::VHServiceImpl service(db_path,concurrent,dx_path);
         ServerBuilder builder;
         builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
         builder.RegisterService(&service);

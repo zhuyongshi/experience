@@ -8,12 +8,12 @@
 
 int main(int argc, char *argv[])
 {
-    if (argc < 3)
+    if (argc < 4)
     {
-        std::cerr << "参数不足r 2个！" << std::endl;
+        std::cerr << "参数不足r 4个！" << std::endl;
         exit(-1);
     }
-    RunServer(std::string(argv[1]), atoi(argv[2]));
+    RunServer(std::string(argv[1]), atoi(argv[3]),std::string(argv[2]));
 }
 
-// ./rpc_server [sdb_path] [threadsnum]
+// ./rpc_server [sdb_path] [dx_path] [threadsnum]
