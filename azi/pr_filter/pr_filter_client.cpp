@@ -134,7 +134,7 @@ int PR_Filter_Resolve(pr_filter_resolve_param param, std::vector<std::string> &r
         return -1;
     }
     // v1..vs=PR.Dec(kv, kt, kxor, w1, wn, c0..cs)
-    int s =, len = 0;
+    int s =param.c.size(), len = 0;
     if (s > 0)
     {
         len = param.c[0].size();

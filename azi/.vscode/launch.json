@@ -5,7 +5,7 @@
             "name": "C/C++",
             "type": "cppdbg",
             "request": "launch",
-            "program": "/home/xie/experience/azi/run",
+            "program": "/home/xie/experience/azi/pr_filter/run",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

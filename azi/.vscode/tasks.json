@@ -5,13 +5,13 @@
             "command": "g++",
             "args": [
                 "-g",
-                "/home/xie/experience/azi/pr_filter_util.cpp",
-                "/home/xie/experience/azi/pr_filter_server.cpp",
-                "/home/xie/experience/azi/pr_filter_client.cpp",
-                "/home/xie/experience/azi/main.cpp",
-                "/home/xie/experience/azi/ecsse_util.cpp",
+                "/home/xie/experience/azi/pr_filter/pr_filter_util.cpp",
+                "/home/xie/experience/azi/pr_filter/pr_filter_server.cpp",
+                "/home/xie/experience/azi/pr_filter/pr_filter_client.cpp",
+                "/home/xie/experience/azi/pr_filter/test.cpp",
+                "/home/xie/experience/azi/pr_filter/ecsse_util.cpp",
                 "-o",
-                "/home/xie/experience/azi/run",
+                "/home/xie/experience/azi/pr_filter/run",
                 "-lcryptopp"
             ],
             "problemMatcher": {

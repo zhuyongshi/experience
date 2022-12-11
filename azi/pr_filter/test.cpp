@@ -216,57 +216,6 @@ void Test_RG_RE()
     return;
 }
 
-// 测试RG和RE
-void Test_RG_RE2()
-{
-    std::vector<std::string> key{"01010", "10101", "11100"};
-    std::vector<std::string> w1{"name", "age"};
-    std::vector<std::string> w2{"name", "sex"};
-    std::vector<std::string> w3{"name", "old"};
-    std::vector<std::string> w4{"name", "age", "sex"};
-    std::vector<std::string> w5{"name", "sex", "old"};
-    std::vector<std::string> m{"id1", "id2", "id3"};
-    int len = m[0].size(), s = m.size();
-    std::map<std::string, int> DX;
-    std::map<std::string, int> ZX{
-        {"id1", 1001},
-        {"id2", 11},
-        {"id3", 64132},
-    };
-
-    //加密w1
-    std::vector<std::string> c_w1(s);
-    std::vector<std::string> dc_w1(s);
-    Pr_Enc(key, w1, m, len, ZX, c_w1, dc_w1, DX);
-
-    std::vector<int> CK3_w4;
-    std::vector<std::vector<int>> P2_w4(2);
-    std::vector<std::string> KeyPhi_w4(2);
-    Pr_ReGen(key, w4, len, CK3_w4, P2_w4, KeyPhi_w4);
-
-    std::vector<std::string> cplus_w2(s);
-    std::vector<std::string> dcplus_w2(s);
-    Pr_ReEnc(CK3_w4, P2_w4, KeyPhi_w4, c_w1, dc_w1, cplus_w2, dcplus_w2);
-
-    std::vector<std::string> mm_w2(s);
-    Pr_Dec(key, w2, cplus_w2, dcplus_w2, len, DX, mm_w2);
-
-    //加密w2
-    std::vector<int> CK3_w5;
-    std::vector<std::vector<int>> P2_w5(2);
-    std::vector<std::string> KeyPhi_w5(2);
-    Pr_ReGen(key, w5, len, CK3_w5, P2_w5, KeyPhi_w5);
-
-    std::vector<std::string> cplus_w3(s);
-    std::vector<std::string> dcplus_w3(s);
-    Pr_ReEnc(CK3_w5, P2_w5, KeyPhi_w5, cplus_w2, dcplus_w2, cplus_w3, dcplus_w3);
-
-    std::vector<std::string> mm_w3(s);
-    Pr_Dec(key, w3, cplus_w3, dcplus_w3, len, DX, mm_w3);
-
-    return;
-}
-
 // 测试Pr-filter
 void Test_Pr_filter()
 {
@@ -299,7 +248,7 @@ void Test_Pr_filter()
     pr_filter_token_param token_param;
     token_param.len = 3;
     token_param.mk = setup_res.mk;
-    token_param.words = std::vector<std::string>{"name", "age", "sex", "old"};
+    token_param.words = std::vector<std::string>{"name", "age", "sex"};
     pr_filter_token_res token_res;
     PR_Filter_Token(token_param, token_res);
 
@@ -342,7 +291,6 @@ int main()
     // Test_Pr_ED();
     // Test_Pr_ED_NUL();
     // Test_RG_RE();
-    // Test_RG_RE2();
     Test_Pr_filter();
     return 0;
 }
