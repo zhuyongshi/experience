@@ -11,6 +11,30 @@ using namespace CryptoPP;
 
 #define ANOTHKEY "ANOTH"
 
+struct cdc
+{
+    std::vector<std::string> c;
+    std::vector<std::string> dc;
+    cdc(){}
+    cdc(std::vector<std::string> c, std::vector<std::string> dc): c(c), dc(dc) {}
+    int size(){return c.size();}
+};
+typedef struct cdc cdc;
+
+typedef struct
+{
+    std::map<std::string, cdc> EMMt;
+    std::multiset<std::string> Xset;
+} EMM;
+
+typedef struct
+{
+    std::string kx;
+    std::vector<int> CK;
+    std::vector<std::vector<int>> P2;
+    std::vector<std::string> KeyPhi;
+} key_re_d;
+
 //从word中获取w1和w2
 int find_w12_from_w(std::string word, std::string &w1, std::string &w2);
 
@@ -32,32 +56,18 @@ std::vector<int> Find_CK(int n, std::vector<int> kpa, std::vector<int> kpb);
 // 密钥扩展函数，将密钥从key长度扩展到n长度
 int Permutationkey_Gen(std::string key, int n, std::vector<int> &ret);
 
-int ANOTH(int len, std::vector<std::string> m, std::vector<std::string> &mplus);
+void AONTH(int ctr, std::string m, std::string &mplus, std::string &dmplus);
 
-int D_AONTH(std::vector<std::string> mplus, std::vector<std::string> &m);
+void D_AONTH(int ctr, std::string mplus, std::string dmplus, std::string &m);
 
-int Pr_Gen(std::vector<std::string> key, std::vector<std::string> w, int len, int n, std::vector<std::string> &P1, std::vector<std::string> &P2, std::vector<std::string> &P3, std::string &retkey);
+int Pr_Gen(std::vector<std::string> key, std::vector<std::string> w, int len, int doc, std::vector<int> &P1, std::vector<int> &P2, std::vector<int> &P3, std::string &keyphi);
 
-int Pr_Enc(std::vector<std::string> key, std::vector<std::string> w, std::vector<std::string> m, int len, std::vector<std::string> &c);
+int Pr_Enc(std::vector<std::string> key, std::vector<std::string> w, std::vector<std::string> m, int len, std::map<std::string, int> ZX, std::vector<std::string> &c, std::vector<std::string> &dc, std::map<std::string, int> &DX);
 
-int Pr_Dec(std::vector<std::string> key, std::vector<std::string> w, std::vector<std::string> c, int len, std::vector<std::string> &m);
+int Pr_Dec(std::vector<std::string> key, std::vector<std::string> w, std::vector<std::string> c, std::vector<std::string> dc, int len, std::map<std::string, int> DX, std::vector<std::string> &m);
 
-int Pr_ReGen(std::vector<std::string> key, std::vector<std::string> w, int len, int s, std::vector<std::vector<int>> &RetCK, std::vector<std::vector<int>> &RetP2, std::vector<std::string> &RetKeyPhi);
+int Pr_ReGen(std::vector<std::string> key, std::vector<std::string> w, int len, std::vector<int> &RetCK3, std::vector<std::vector<int>> &RetP2, std::vector<std::string> &RetKeyPhi);
 
-int Pr_ReEnc(std::vector<std::vector<int>> CK, std::vector<std::vector<int>> P2, std::vector<std::string> KeyPhi, std::vector<std::string> c, std::vector<std::string> &ret_c);
+int Pr_ReEnc(std::vector<int> CK3, std::vector<std::vector<int>> P2, std::vector<std::string> KeyPhi, std::vector<std::string> c, std::vector<std::string> dc, std::vector<std::string> &cplus, std::vector<std::string> &dcplus);
 
-typedef struct
-{
-    std::string kx;
-    std::vector<std::vector<int>> CK;
-    std::vector<std::vector<int>> P2;
-    std::vector<std::string> KeyPhi;
-} key_re_d;
-
-typedef struct
-{
-    std::map<std::string, std::vector<std::string>> EMMp;
-    std::multiset<std::string> Xset;
-} EMM;
-
-#endif //PR_FILTER_UTIL
+#endif // PR_FILTER_UTIL

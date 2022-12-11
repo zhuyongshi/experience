@@ -1,46 +1,58 @@
 syntax = "proto3";
 
-
 package azi;
 
 service RPC {
 
-// Search
-rpc search (SearchRequestMessage) returns (stream SearchReply) {}
+    // Setup
+    rpc SetupEmmt (stream SetupEmmtRequest) returns (SetupEmmtRespone) {}
+    rpc SetupXset (stream SetupXsetRequest) returns (SetupXsetRespone) {}
 
-// Update
-rpc update (stream UpdateRequestMessage) returns ( ExecuteStatus ) {}
-
-rpc updateXset (stream UpdateRequestMessage) returns ( ExecuteStatus ) {}
-
-
+    // Search
+    rpc Search (SearchRequest) returns (SearchRespone) {}
 }
 
-
-message UpdateRequestMessage
+message cbc
 {
-    bytes l = 1;
-    bytes e = 2;
+    repeated bytes c = 1;
+    repeated bytes bc = 2;
 }
 
-message UpdateXsetMessage{
-    bytes x = 1;
+message key_re_d {
+    string kx = 1;
+    repeated int32 ck = 2;
+    repeated int32 p2 = 3;
+    repeated int32 p2_plus = 4;
+    string key_phi = 5;
+    string key_phi_plus = 6;
 }
 
-message SearchRequestMessage
+message SetupEmmtRequest
 {
-    bytes x = 1;
-	uint64 q_f = 2; 
-    uint64 cnt = 3;
+    bytes key = 1;
+    cbc value = 2;
 }
 
-
-message SearchReply
-{
-	bytes ind = 1;
+message SetupEmmtRespone {
+    int32  code = 1;
 }
 
-message ExecuteStatus
+message SetupXsetRequest
 {
-	bool status = 1; 
+    bytes xset_v = 1;
+}
+
+message SetupXsetRespone {
+    int32  code = 1;
+}
+
+message SearchRequest
+{
+    string tokp = 1;
+    string k_w12_enc = 2;
+    repeated key_re_d tokp_vec = 3;
+}
+
+message SearchRespone {
+    int32  code = 1;
 }

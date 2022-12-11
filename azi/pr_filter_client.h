@@ -12,12 +12,12 @@ typedef struct
     std::string kp;
     std::string kx;
     std::string kxor;
-    std::string mskp;
+    std::string mskt;
 } MK;
 
-void sEMM_Setup(int lambda, std::map<std::string, std::vector<std::string>> MMp, std::string &mskp, std::map<std::string, std::vector<std::string>> &EMMp);
+void sEMM_Setup(int lambda, std::map<std::string, cdc> MMp, std::string &mskt, std::map<std::string, cdc> &EMMp);
 
-void sEMM_Token(std::string mskp, std::string w1, std::string w2, std::string &token);
+void sEMM_Token(std::string mskt, std::string w1, std::string w2, std::string &token);
 
 typedef struct
 {
@@ -30,6 +30,7 @@ typedef struct
 {
     MK mk;
     EMM emm;
+    std::map<std::string, int> DX;
 } pr_filter_setup_res;
 
 int PR_Filter_Setup(pr_filter_setup_param param, pr_filter_setup_res &res);
@@ -39,7 +40,6 @@ typedef struct
     MK mk;
     std::vector<std::string> words;
     int len;
-    int s;
 } pr_filter_token_param;
 
 typedef struct
@@ -57,7 +57,9 @@ typedef struct
     std::string wn;
     MK mk;
     std::vector<std::string> c;
+    std::vector<std::string> dc;
     std::vector<bool> vaild;
+    std::map<std::string, int> DX;
 } pr_filter_resolve_param;
 
 int PR_Filter_Resolve(pr_filter_resolve_param param, std::vector<std::string> &res);

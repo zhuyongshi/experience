@@ -6,7 +6,7 @@ void Test_GenKey()
     std::cout << Gen_RandKey(10) << std::endl;
 }
 
-//测试截取word
+// 测试截取word
 void Test_SubWord()
 {
     std::string str = "0001∩15444";
@@ -18,7 +18,7 @@ void Test_SubWord()
     find_w12_from_w(str, w1, w2);
 }
 
-//测试permutation
+// 测试permutation
 void Test_Permutation()
 {
     std::vector<int> kep{2, 3, 4, 0, 1};
@@ -37,7 +37,7 @@ void Test_Permutation()
     std::cout << std::endl;
 }
 
-//测试permutation2
+// 测试permutation2
 void Test_Permutation2()
 {
     std::vector<int> kep{4, 2, 1, 3, 0};
@@ -73,7 +73,7 @@ void Test_Permutation2()
     std::cout << std::endl;
 }
 
-//测试 FindConversion Key
+// 测试 FindConversion Key
 void Test_FindConversionKey()
 {
     int size = 4;
@@ -88,7 +88,7 @@ void Test_FindConversionKey()
     std::cout << std::endl;
 }
 
-//测试PGen
+// 测试PGen
 void Test_PGen()
 {
     std::string key = "yangziyi";
@@ -102,50 +102,45 @@ void Test_PGen()
     std::cout << std::endl;
 }
 
-//测试Aonth和Daonth
+// 测试Aonth和Daonth
 void Test_AONTH_DAONTH()
 {
     // 测试AONTH
-    int len = 8;
-    std::vector<std::string> m{"abc", "def", "ghi", "jkl", "mno", "pqr"};
-    std::vector<std::string> mplus(m.size() + 1);
-    ANOTH(len, m, mplus);
-    for (int i = 0; i < mplus.size(); i++)
-    {
-        std::cout << mplus[i] << " ";
-    }
-    std::cout << std::endl;
+    int ctr = 20;
+    std::string m = "abc";
+    std::string mplus;
+    std::string dmplus;
+    AONTH(ctr, m, mplus, dmplus);
+    std::cout << "mplus: " << mplus << ", dmplus: " << dmplus << std::endl;
 
     // 测试D-AONTH
-    std::vector<std::string> origin_m(mplus.size() - 1);
-    D_AONTH(mplus, origin_m);
-    for (int i = 0; i < m.size(); i++)
-    {
-        std::cout << origin_m[i] << " ";
-    }
-    std::cout << std::endl;
+    std::string origin_m;
+    D_AONTH(ctr, mplus, dmplus, origin_m);
+    std::cout << "origin m: " << origin_m << std::endl;
 }
 
-//测试PR_Enc和Pr_dec
+// 测试PR_Enc和Pr_dec
 void Test_Pr_ED()
 {
     std::vector<std::string> key{"01010", "10101", "11100"};
     std::vector<std::string> w{"name", "age"};
     std::vector<std::string> m{"id1", "id2", "id3", "id4", "id5"};
-    int len = m[0].size();
+    int s = m.size(), len = m[0].size(), ctr = 20;
+    std::map<std::string, int> DX;
+    std::map<std::string, int> ZX{
+        {"id1", 1001},
+        {"id2", 1},
+        {"id3", 64132},
+        {"id4", 2345},
+        {"id5", 98},
+    };
 
-    int s = m.size(), n = s + 1;
-    std::vector<std::string> c(n);
-    Pr_Enc(key, w, m, len, c);
-    std::cout << "Pr_Enc:" << std::endl;
-    for (size_t i = 0; i < n; i++)
-    {
-        std::cout << c[i] << " ";
-    }
-    std::cout << std::endl;
+    std::vector<std::string> c(s);
+    std::vector<std::string> dc(s);
+    Pr_Enc(key, w, m, len, ZX, c, dc, DX);
 
     std::vector<std::string> mm(s);
-    Pr_Dec(key, w, c, len, mm);
+    Pr_Dec(key, w, c, dc, len, DX, mm);
     std::cout << "Pr_Dec:" << std::endl;
     for (size_t i = 0; i < s; i++)
     {
@@ -154,26 +149,22 @@ void Test_Pr_ED()
     std::cout << std::endl;
 }
 
-//测试PR_Enc和Pr_dec，测试m数组为空情况
+// 测试PR_Enc和Pr_dec，测试m数组为空情况
 void Test_Pr_ED_NUL()
 {
     std::vector<std::string> key{"01010", "10101", "11100"};
     std::vector<std::string> w{"name", "age"};
     std::vector<std::string> m;
-    int len = 0;
+    int s = m.size(), len = 0, ctr = 20;
+    std::map<std::string, int> DX;
+    std::map<std::string, int> ZX;
 
-    int s = m.size(), n = s + 1;
-    std::vector<std::string> c(n);
-    Pr_Enc(key, w, m, len, c);
-    std::cout << "Pr_Enc:" << std::endl;
-    for (size_t i = 0; i < n; i++)
-    {
-        std::cout << c[i] << " ";
-    }
-    std::cout << std::endl;
+    std::vector<std::string> c(s);
+    std::vector<std::string> dc(s);
+    Pr_Enc(key, w, m, len, ZX, c, dc, DX);
 
     std::vector<std::string> mm(s);
-    Pr_Dec(key, w, c, len, mm);
+    Pr_Dec(key, w, c, dc, len, DX, mm);
     std::cout << "Pr_Dec:" << std::endl;
     for (size_t i = 0; i < s; i++)
     {
@@ -182,7 +173,7 @@ void Test_Pr_ED_NUL()
     std::cout << std::endl;
 }
 
-//测试RG和RE
+// 测试RG和RE
 void Test_RG_RE()
 {
     std::vector<std::string> key{"01010", "10101", "11100"};
@@ -190,39 +181,93 @@ void Test_RG_RE()
     std::vector<std::string> w2{"name", "sex"};
     std::vector<std::string> w3{"name", "age", "sex"};
     std::vector<std::string> m{"id1", "id2", "id3", "id4", "id5"};
-    int len = m[0].size();
+    int len = m[0].size(), s = m.size(), ctr = 20;
+    std::map<std::string, int> DX;
+    std::map<std::string, int> ZX{
+        {"id1", 1001},
+        {"id2", 1},
+        {"id3", 64132},
+        {"id4", 2345},
+        {"id5", 98},
+    };
 
-    int s = m.size(), n = s + 1;
-    std::vector<std::string> c(n);
-    Pr_Enc(key, w1, m, len, c);
+    std::vector<std::string> c(s);
+    std::vector<std::string> dc(s);
+    Pr_Enc(key, w1, m, len, ZX, c, dc, DX);
 
-    std::vector<std::vector<int>> CK(2);
+    std::vector<int> CK3;
     std::vector<std::vector<int>> P2(2);
     std::vector<std::string> KeyPhi(2);
-    Pr_ReGen(key, w3, len, s, CK, P2, KeyPhi);
+    Pr_ReGen(key, w3, len, CK3, P2, KeyPhi);
 
-    std::vector<std::string> cc(n);
-    Pr_ReEnc(CK, P2, KeyPhi, c, cc);
+    std::vector<std::string> cplus(s);
+    std::vector<std::string> dcplus(s);
+    Pr_ReEnc(CK3, P2, KeyPhi, c, dc, cplus, dcplus);
 
     // 重加密后的结果
     std::vector<std::string> mm(s);
-    Pr_Dec(key, w2, cc, len, mm);
+    Pr_Dec(key, w2, cplus, dcplus, len, DX, mm);
     for (size_t i = 0; i < s; i++)
     {
         std::cout << mm[i] << " ";
     }
     std::cout << std::endl;
 
-    // 直接加密的结果
-    std::vector<std::string> ccc(n);
-    Pr_Enc(key, w2, m, len, ccc);
-    std::vector<std::string> mmm(s);
-    Pr_Dec(key, w2, ccc, len, mmm);
+    return;
+}
+
+// 测试RG和RE
+void Test_RG_RE2()
+{
+    std::vector<std::string> key{"01010", "10101", "11100"};
+    std::vector<std::string> w1{"name", "age"};
+    std::vector<std::string> w2{"name", "sex"};
+    std::vector<std::string> w3{"name", "old"};
+    std::vector<std::string> w4{"name", "age", "sex"};
+    std::vector<std::string> w5{"name", "sex", "old"};
+    std::vector<std::string> m{"id1", "id2", "id3"};
+    int len = m[0].size(), s = m.size();
+    std::map<std::string, int> DX;
+    std::map<std::string, int> ZX{
+        {"id1", 1001},
+        {"id2", 11},
+        {"id3", 64132},
+    };
+
+    //加密w1
+    std::vector<std::string> c_w1(s);
+    std::vector<std::string> dc_w1(s);
+    Pr_Enc(key, w1, m, len, ZX, c_w1, dc_w1, DX);
+
+    std::vector<int> CK3_w4;
+    std::vector<std::vector<int>> P2_w4(2);
+    std::vector<std::string> KeyPhi_w4(2);
+    Pr_ReGen(key, w4, len, CK3_w4, P2_w4, KeyPhi_w4);
+
+    std::vector<std::string> cplus_w2(s);
+    std::vector<std::string> dcplus_w2(s);
+    Pr_ReEnc(CK3_w4, P2_w4, KeyPhi_w4, c_w1, dc_w1, cplus_w2, dcplus_w2);
+
+    std::vector<std::string> mm_w2(s);
+    Pr_Dec(key, w2, cplus_w2, dcplus_w2, len, DX, mm_w2);
+
+    //加密w2
+    std::vector<int> CK3_w5;
+    std::vector<std::vector<int>> P2_w5(2);
+    std::vector<std::string> KeyPhi_w5(2);
+    Pr_ReGen(key, w5, len, CK3_w5, P2_w5, KeyPhi_w5);
+
+    std::vector<std::string> cplus_w3(s);
+    std::vector<std::string> dcplus_w3(s);
+    Pr_ReEnc(CK3_w5, P2_w5, KeyPhi_w5, cplus_w2, dcplus_w2, cplus_w3, dcplus_w3);
+
+    std::vector<std::string> mm_w3(s);
+    Pr_Dec(key, w3, cplus_w3, dcplus_w3, len, DX, mm_w3);
 
     return;
 }
 
-//测试Pr-filter
+// 测试Pr-filter
 void Test_Pr_filter()
 {
     // setup
@@ -253,9 +298,8 @@ void Test_Pr_filter()
     // token
     pr_filter_token_param token_param;
     token_param.len = 3;
-    token_param.s = 3;
     token_param.mk = setup_res.mk;
-    token_param.words = std::vector<std::string>{"name", "age", "sex"};
+    token_param.words = std::vector<std::string>{"name", "age", "sex", "old"};
     pr_filter_token_res token_res;
     PR_Filter_Token(token_param, token_res);
 
@@ -272,9 +316,11 @@ void Test_Pr_filter()
     pr_filter_resolve_param resolve_param;
     resolve_param.w1 = "name";
     resolve_param.wn = "sex";
-    resolve_param.c = search_res.c;
-    resolve_param.vaild = search_res.vaild;
     resolve_param.mk = token_param.mk;
+    resolve_param.c = search_res.c;
+    resolve_param.dc = search_res.dc;
+    resolve_param.vaild = search_res.vaild;
+    resolve_param.DX = setup_res.DX;
     std::vector<std::string> resolve_res;
     PR_Filter_Resolve(resolve_param, resolve_res);
     for (int i = 0; i < resolve_res.size(); i++)
@@ -295,7 +341,8 @@ int main()
     // Test_AONTH_DAONTH();
     // Test_Pr_ED();
     // Test_Pr_ED_NUL();
-    Test_RG_RE();
-    // Test_Pr_filter();
+    // Test_RG_RE();
+    // Test_RG_RE2();
+    Test_Pr_filter();
     return 0;
 }

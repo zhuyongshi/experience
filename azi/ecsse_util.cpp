@@ -69,12 +69,8 @@ std::string padding(std::string s, int len)
     if (s.size() < len)
     {
         int count = len - s.size();
-        while (count)
-        {
-            r += "0";
-            count--;
-        }
-        r += s;
+        std::string pad(count, '0');
+        r = s + pad;
     }
     else
     {
@@ -88,13 +84,14 @@ std::string Xor(const std::string s1, const std::string s2)
 {
     if (s1.length() != s2.length())
     {
-        std::cout << "[Xor] not sufficient size: " << s1.length() << ", " << s2.length() << std::endl;
+        std::cout << "[Xor] not sufficient size, s1 lenght: " << s1.length() << ", s2 lenght: " << s2.length() << std::endl;
         return "";
     }
-    std::string ans = s1;
+    std::string ans = s1.length() > s2.length() ? s1.substr(0, s2.length()) : s2.substr(0, s1.length());
+    std::string xor_str = s1.length() > s2.length() ? s2 : s1;
     for (int i = 0; i < ans.length(); i++)
     {
-        ans[i] = ans[i] ^ s2[i];
+        ans[i] = ans[i] ^ xor_str[i];
     }
     return ans;
 }
@@ -102,7 +99,7 @@ std::string Xor(const std::string s1, const std::string s2)
 // 产生随机数密钥串，类型为byte
 int gen_key(byte *key1)
 {
-    //产生一个随机数密钥串，长度为16字节
+    // 产生一个随机数密钥串，长度为16字节
     AutoSeededRandomPool rand;
     SecByteBlock Key(0x00, AES::DEFAULT_KEYLENGTH);
     rand.GenerateBlock(Key, Key.size());
@@ -135,17 +132,17 @@ void encrypt(std::string key, std::string plaintext, std::string &ciphertext)
 {
     try
     {
-        key=padding(key, 16);
+        key = padding(key, 16);
         byte iv_s[17] = "0123456789abcdef";
         CFB_Mode<AES>::Encryption e;
         e.SetKeyWithIV((byte *)key.c_str(), AES128_KEY_LEN, iv_s, (size_t)AES::BLOCKSIZE);
-        byte tmp_new_st[AES128_KEY_LEN]={0};
+        byte tmp_new_st[AES128_KEY_LEN] = {0};
         e.ProcessData(tmp_new_st, (byte *)plaintext.c_str(), plaintext.length());
         ciphertext = std::string((const char *)tmp_new_st, plaintext.length());
     }
     catch (const CryptoPP::Exception &e)
     {
-        std::cerr << "in descrypt()解密出问题" << e.what() << std::endl;
+        std::cerr << "encrypt wrong: " << e.what() << std::endl;
         exit(1);
     }
 }
@@ -155,18 +152,17 @@ void decrypt(std::string key, std::string ciphertext, std::string &plaintext)
 {
     try
     {
-        key=padding(key, 16);
+        key = padding(key, 16);
         byte iv_s[17] = "0123456789abcdef";
         CFB_Mode<AES>::Decryption d;
         d.SetKeyWithIV((byte *)key.c_str(), AES128_KEY_LEN, iv_s, (size_t)AES::BLOCKSIZE);
-        byte tmp_new_st[AES128_KEY_LEN]={0};
+        byte tmp_new_st[AES128_KEY_LEN] = {0};
         d.ProcessData(tmp_new_st, (byte *)ciphertext.c_str(), ciphertext.length());
         plaintext = std::string((const char *)tmp_new_st, ciphertext.length());
     }
     catch (const CryptoPP::Exception &e)
     {
-        std::cerr << "in descrypt()解密出问题" << e.what() << std::endl;
+        std::cerr << "decrypt wrong: " << e.what() << std::endl;
         exit(1);
     }
-    // return plaintext;
 }

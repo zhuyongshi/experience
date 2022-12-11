@@ -5,7 +5,7 @@
 
 using namespace CryptoPP;
 
-void sEMM_Search(std::string tokp, std::map<std::string, std::vector<std::string>> EMMp, std::vector<std::string> &tags);
+void sEMM_Search(std::string tokp, std::map<std::string, cdc> EMMp, std::vector<std::string> &tags);
 
 typedef struct
 {
@@ -18,6 +18,7 @@ typedef struct
 typedef struct
 {
     std::vector<std::string> c;
+    std::vector<std::string> dc;
     std::vector<bool> vaild;
 } pr_filter_search_res;
 

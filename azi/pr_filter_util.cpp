@@ -107,120 +107,47 @@ int Permutationkey_Gen(std::string key, int n, std::vector<int> &ret)
     return 0;
 }
 
-int ANOTH(int len, std::vector<std::string> m, std::vector<std::string> &mplus)
+void AONTH(int ctr, std::string m, std::string &mplus, std::string &dmplus)
 {
-    if (m.size() + 1 != mplus.size())
-    {
-        std::cout << "[ANOTH] not sufficient size: " << m.size() << ", " << mplus.size() << std::endl;
-        return -1;
-    }
-    int s = m.size(); // id个数
-    std::string keyp = Gen_RandKey(len);
-    // x[i] = m[i] ^ Hash'(kp, i)
-    for (int i = 0; i < s; i++)
-    {
-        std::string i_plus = std::to_string(i + 1);
-        std::string digest = H1(keyp, i_plus).substr(0, m[i].size());
-        mplus[i] = Xor(m[i], digest);
-    }
-    // m'[n] = Kp ^ h1 ^ h2 ... hs
-    // hi = Hash(K0, mi' ^ i)
-    mplus[s] = keyp;
-    for (int i = 0; i < s; i++)
-    {
-        std::string bina_i = toBinary(i + 1);
-        std::string pad_i = padding(bina_i, mplus[i].size());
-        std::string xor_param = H1(ANOTHKEY, Xor(mplus[i], pad_i)).substr(0, mplus[s].size());
-        mplus[s] = Xor(mplus[s], xor_param);
-    }
-    return 0;
-    // int n = m.size(); // id个数
-    // std::vector<std::string> x(n);
-    // std::string allX = "";
+    std::string keyp = H1(m, ANOTHKEY).substr(0, m.size());
 
-    // std::string keyp = Gen_RandKey(len);
-    // int ctr=20;
+    // x = m ^ Hash(ctr+1, k')
+    std::string ctrPlus = std::to_string(ctr + 1);
+    std::string digest = H1(ctrPlus, keyp).substr(0, m.size());
+    std::string x = Xor(m, digest);
 
-    // // x[i] = m[i] ^ Fk'(ctr+i)
-    // for (int i = 0; i < n; i++)
-    // {
-    //     std::string ctrPlus = std::to_string(ctr + i + 1);
-    //     std::string digest = H1(ctrPlus, keyp).substr(0, m[i].size());
-    //     x[i] = Xor(m[i], digest);
-    //     allX += x[i];
-    // }
+    // dm' = k' ^ H(x)
+    std::string hash_x = H(x).substr(0, keyp.size());
+    dmplus = Xor(keyp, hash_x);
 
-    // // m'[n+1] = K' ^ H(x[1]...x[n])
-    // std::string hash_allx = H(allX).substr(0, keyp.size());
-    // mplus[n] = Xor(keyp, hash_allx);
-
-    // // m'[i] = x[i] ^ H(m'[n+1] ^ (ctr+i))
-    // for (int i = 0; i < n; i++)
-    // {
-    //     std::string bina_ctr = toBinary(ctr + i + 1);
-    //     std::string pad_ctr = padding(bina_ctr, mplus[n].size());
-    //     std::string xor_param = H(Xor(mplus[n], pad_ctr)).substr(0, x[i].size());
-    //     mplus[i] = Xor(x[i], xor_param);
-    // }
-    // return 0;
+    // m' = x ^ H(dm' ^ (ctr+1))
+    std::string bina_ctr = toBinary(ctr + 1);
+    std::string pad_ctr = padding(bina_ctr, dmplus.size());
+    std::string xor_param = H(Xor(dmplus, pad_ctr)).substr(0, x.size());
+    mplus = Xor(x, xor_param);
+    return;
 }
 
-int D_AONTH(std::vector<std::string> mplus, std::vector<std::string> &m)
+void D_AONTH(int ctr, std::string mplus, std::string dmplus, std::string &m)
 {
-    if (m.size() + 1 != mplus.size())
-    {
-        std::cout << "[D_AONTH] not sufficient size: " << m.size() << ", " << mplus.size() << std::endl;
-        return -1;
-    }
-    int s = m.size();
-    std::string keyp = mplus[s];
-    // K' = m'[n] ^ h1 ^ h2 ... hs
-    for (int i = 0; i < s; i++)
-    {
-        std::string bina_i = toBinary(i + 1);
-        std::string pad_i = padding(bina_i, mplus[i].size());
-        std::string xor_param = H1(ANOTHKEY, Xor(mplus[i], pad_i)).substr(0, keyp.size());
-        keyp = Xor(keyp, xor_param);
-    }
-    // m[i] = mplus[i] ^ Hash'(k, i)
-    for (int i = 0; i < s; i++)
-    {
-        std::string i_plus = std::to_string(i + 1);
-        std::string digest = H1(keyp, i_plus).substr(0, mplus[i].size());
-        m[i] = Xor(mplus[i], digest);
-    }
-    return 0;
-    // int n = m.size();
-    // std::vector<std::string> x(n);
-    // std::string allX = "";
-    // std::string keyp;
-    // int ctr=20;
+    // x = m' ^ H(dm' ^ (ctr+1))
+    std::string bina_ctr = toBinary(ctr + 1);
+    std::string pad_ctr = padding(bina_ctr, dmplus.size());
+    std::string xor_param = H(Xor(dmplus, pad_ctr)).substr(0, mplus.size());
+    std::string x = Xor(mplus, xor_param);
 
-    // // x[i] = m'[i] ^ H(m'[n+1] ^ (ctr+i))
-    // for (int i = 0; i < n; i++)
-    // {
-    //     std::string bina_ctr = toBinary(ctr + i + 1);
-    //     std::string pad_ctr = padding(bina_ctr, mplus[n].size());
-    //     std::string xor_param = H(Xor(mplus[n], pad_ctr)).substr(0, mplus[i].size()); //
-    //     x[i] = Xor(mplus[i], xor_param);
-    //     allX += x[i];
-    // }
+    // k' = dm' ^ H(x)
+    std::string hash_x = H(x).substr(0, dmplus.size());
+    std::string keyp = Xor(dmplus, hash_x);
 
-    // // K' = m'[n+1] ^ H(x[1]...x[n])
-    // std::string hash_allx = H(allX).substr(0, mplus[n].size());
-    // keyp = Xor(mplus[n], hash_allx);
-
-    // // m[i] = x[i] ^ Fk'(ctr+i)
-    // for (int i = 0; i < n; i++)
-    // {
-    //     std::string ctrPlus = std::to_string(ctr + i + 1);
-    //     std::string digest = H1(ctrPlus, keyp).substr(0, x[i].size());
-    //     m[i] = Xor(x[i], digest);
-    // }
-    // return 0;
+    // m = x ^ Hash(ctr+1, k')
+    std::string ctrPlus = std::to_string(ctr + 1);
+    std::string digest = H1(ctrPlus, keyp).substr(0, x.size());
+    m = Xor(x, digest);
+    return;
 }
 
-int Pr_Gen(std::vector<std::string> key, std::vector<std::string> w, int len, int n,
+int Pr_Gen(std::vector<std::string> key, std::vector<std::string> w, int len, int doc,
            std::vector<int> &P1, std::vector<int> &P2, std::vector<int> &P3, std::string &keyphi)
 {
     if (key.size() != 3 || w.size() != 2)
@@ -228,7 +155,7 @@ int Pr_Gen(std::vector<std::string> key, std::vector<std::string> w, int len, in
         std::cout << "[Pr_Gen] wrong input, the lenght of key should be 3 and w should be 2" << std::endl;
         return -1;
     }
-    if (P1.size() != len || P2.size() != len || P3.size() != n)
+    if (P1.size() != len || P2.size() != len || P3.size() != doc)
     {
         std::cout << "[Pr_Gen] the lenght of P1 and P2 is not len, and P3 is not n" << std::endl;
         return -1;
@@ -240,111 +167,118 @@ int Pr_Gen(std::vector<std::string> key, std::vector<std::string> w, int len, in
 
     Permutationkey_Gen(keyw1, len, P1);
     Permutationkey_Gen(keyw2, len, P2);
-    Permutationkey_Gen(key3, n, P3);
+    Permutationkey_Gen(key3, doc, P3);
     return 0;
 }
 
-int Pr_Enc(std::vector<std::string> key, std::vector<std::string> w, std::vector<std::string> m, int len,
-           std::vector<std::string> &c)
+int Pr_Enc(std::vector<std::string> key, std::vector<std::string> w, std::vector<std::string> m, int len, std::map<std::string, int> ZX,
+           std::vector<std::string> &c, std::vector<std::string> &dc, std::map<std::string, int> &DX)
 {
-    if (m.size() + 1 != c.size())
+    if (m.size() == 0)
     {
-        std::cout << "[Pr_Enc] wrong input, len(m) + 1 = len(c) " << std::endl;
+        return 0;
+    }
+    if (m.size() != c.size() || c.size() != dc.size())
+    {
+        std::cout << "[Pr_Enc] wrong input, len(m) != len(c) != len(dc)" << std::endl;
         return -1;
     }
-    int s = m.size(), n = s + 1;
-    // call Pr-Gen
+    // call Pr-Gen(k1, k2, kphi, w1, w2, len, 2)
     std::vector<int> P1(len);
     std::vector<int> P2(len);
-    std::vector<int> P3(s);
+    std::vector<int> P3(2);
     std::string keyphi;
-    if (Pr_Gen(key, w, len, s, P1, P2, P3, keyphi) != 0)
+    if (Pr_Gen(key, w, len, 2, P1, P2, P3, keyphi) != 0)
     {
         std::cout << "[Pr_Enc] run Pr_Gen err" << std::endl;
         return -1;
     }
-    // m1'...mn'=AONTH(len, m1...mn)
-    std::vector<std::string> mplus(n);
-    ANOTH(len, m, mplus);
-    // m1''...mn''= Perm(P3, m1'...ms')
-    std::vector<std::string> mplusplus(s);
-    if (Permutation2(0, P3, mplus, mplusplus) != 0)
+    for (int i = 0; i < m.size(); i++)
     {
-        std::cout << "[Pr_Enc] run Permutation2 err" << std::endl;
-        return -1;
-    }
-    // co = Perm(P1, mn') ^ Perm(P2, Kfai)
-    c[0] = Xor(Permutation(P1.size(), P1, mplus[n - 1]), Permutation(P2.size(), P2, keyphi));
-    // for i = 1 to s do
-    // ci = Perm(P1, mi'') ^ Perm(P2, ci-1)
-    for (int i = 1; i < n; i++)
-    {
-        c[i] = Xor(Permutation(P1.size(), P1, mplusplus[i - 1]), Permutation(P2.size(), P2, c[i - 1]));
+        int ctr = ZX[m[i]];
+        // (mi', dmi') = AONTH(mi, ctr)
+        std::string mplus, dmplus;
+        AONTH(ctr, m[i], mplus, dmplus);
+        // DX[(a,b)]<-ctr
+        DX.insert(std::pair<std::string, int>{mplus+dmplus, ctr});
+        // (mi', dmi')= Perm(P3, (mi', dmi'))
+        std::vector<std::string> pin{mplus, dmplus};
+        std::vector<std::string> dpin(2);
+        Permutation2(0, P3, pin, dpin);
+        mplus = dpin[0];
+        dmplus = dpin[1];
+        // ci = Perm(Pi, mi') ^ Perm(P2, kphi)
+        c[i] = Xor(Permutation(P1.size(), P1, mplus), Permutation(P2.size(), P2, keyphi));
+        // dci = Perm(Pi, dmi') ^ Perm(P2, ci)
+        dc[i] = Xor(Permutation(P1.size(), P1, dmplus), Permutation(P2.size(), P2, c[i]));
     }
     return 0;
 }
 
-int Pr_Dec(std::vector<std::string> key, std::vector<std::string> w, std::vector<std::string> c, int len,
-           std::vector<std::string> &m)
+int Pr_Dec(std::vector<std::string> key, std::vector<std::string> w, std::vector<std::string> c, std::vector<std::string> dc,
+            int len, std::map<std::string, int> DX, std::vector<std::string> &m)
 {
-    if (m.size() + 1 != c.size())
+    if (c.size() == 0 && dc.size() == 0)
     {
-        std::cout << "[Pr_Dec] wrong input, len(m) + 1 = len(c) " << std::endl;
+        return 0;
+    }
+    if (m.size() != c.size() || c.size() != dc.size())
+    {
+        std::cout << "[Pr_Dec] wrong input, len(m) != len(c) != len(dc)" << std::endl;
         return -1;
     }
-    int n = c.size(), s = n - 1;
-    // call Pr-Gen
+    // call Pr-Gen(k1, k2, kphi, w1, w2, len, 2)
     std::vector<int> P1(len);
     std::vector<int> P2(len);
-    std::vector<int> P3(s);
+    std::vector<int> P3(2);
     std::string keyphi;
-    if (Pr_Gen(key, w, len, s, P1, P2, P3, keyphi) == -1)
+    if (Pr_Gen(key, w, len, 2, P1, P2, P3, keyphi) != 0)
     {
         std::cout << "[Pr_Dec] run Pr_Gen err" << std::endl;
         return -1;
     }
-    // mi''=DePerm(P1, ci ^ Perm(P2, ci-1))
-    std::vector<std::string> mplus(n);
-    std::vector<std::string> mplusplus(s);
-    for (int i = s; i > 0; i--)
+    for (int i = 0; i < c.size(); i++)
     {
-        mplusplus[i - 1] = De_Permutation(P1.size(), P1, Xor(c[i], Permutation(P2.size(), P2, c[i - 1])));
+        // dmi' = DePerm(Pi, dci ^ Perm(P2, ci))
+        std::string dmplus = De_Permutation(P1.size(), P1, Xor(dc[i], Permutation(P2.size(), P2, c[i])));
+        // mi' = DePerm(Pi, ci ^ Perm(P2, kphi))
+        std::string mplus = De_Permutation(P1.size(), P1, Xor(c[i], Permutation(P2.size(), P2, keyphi)));
+        // (mi', dmi')= DePerm(P3, (mi', dmi'))
+        std::vector<std::string> dpin{mplus, dmplus};
+        std::vector<std::string> pin(2);
+        De_Permutation2(0, P3, dpin, pin);
+        mplus = pin[0];
+        dmplus = pin[1];
+        // find from dx
+        int ctr = DX[mplus + dmplus];
+        // mi = D-AONTH(ctr, mi', dmi')
+        D_AONTH(ctr, mplus, dmplus, m[i]);
     }
-    // mn' = DePerm(P1, c0 ^ Perm(P2, keypai))
-    mplus[n - 1] = De_Permutation(P1.size(), P1, Xor(c[0], Permutation(P2.size(), P2, keyphi)));
-    // m1'...mn'= DePerm(P3,m1''...ms'')
-    if (De_Permutation2(0, P3, mplusplus, mplus) != 0)
-    {
-        std::cout << "[Pr_Dec] run De_Permutation2 err" << std::endl;
-        return -1;
-    }
-    // m1..ms=D-AONTH( m1'...mn')
-    D_AONTH(mplus, m);
     return 0;
 }
 
-int Pr_ReGen(std::vector<std::string> key, std::vector<std::string> w, int len, int s,
-             std::vector<std::vector<int>> &RetCK, std::vector<std::vector<int>> &RetP2, std::vector<std::string> &RetKeyPhi)
+int Pr_ReGen(std::vector<std::string> key, std::vector<std::string> w, int len,
+             std::vector<int> &RetCK3, std::vector<std::vector<int>> &RetP2, std::vector<std::string> &RetKeyPhi)
 {
     if (key.size() != 3 || w.size() != 3)
     {
         std::cout << "[Pr_ReGen] wrong input, the lenght of key should be 3 and w should be 3" << std::endl;
         return -1;
     }
-    if (RetCK.size() != 2 || RetP2.size() != 2 || RetKeyPhi.size() != 2)
+    if (RetP2.size() != 2 || RetKeyPhi.size() != 2)
     {
-        std::cout << "[Pr_ReGen] wrong output, the lenght of P2 should be 2 and keypai should be 2 " << std::endl;
+        std::cout << "[Pr_ReGen] wrong output, the lenght of P2 and keypai should be 2 " << std::endl;
         return -1;
     }
     std::vector<int> P1(len);
     std::vector<int> P2(len);
-    std::vector<int> P3(s);
+    std::vector<int> P3(2);
     std::string keyphi;
     std::vector<std::string> w_input(2);
     w_input[0] = w[0];
     w_input[1] = w[1];
     // call Pr-Gen
-    if (Pr_Gen(key, w_input, len, s, P1, P2, P3, keyphi) == -1)
+    if (Pr_Gen(key, w_input, len, 2, P1, P2, P3, keyphi) == -1)
     {
         std::cout << "[Pr_ReGen] run Pr_Gen err" << std::endl;
         return -1;
@@ -352,60 +286,52 @@ int Pr_ReGen(std::vector<std::string> key, std::vector<std::string> w, int len, 
 
     std::vector<int> P1plus(len);
     std::vector<int> P2plus(len);
-    std::vector<int> P3plus(s);
+    std::vector<int> P3plus(2);
     std::string keyphiplus;
     w_input[1] = w[2];
     // call Pr-Gen
-    if (Pr_Gen(key, w_input, len, s, P1plus, P2plus, P3plus, keyphiplus) == -1)
+    if (Pr_Gen(key, w_input, len, 2, P1plus, P2plus, P3plus, keyphiplus) == -1)
     {
         std::cout << "[Pr_ReGen] run Pr_Gen err" << std::endl;
         return -1;
     }
 
-    RetCK[0] = Find_CK(len, P1, P1plus); // CK1=FindCk(P1, P1')
-    RetCK[1] = Find_CK(s, P3, P3plus);   // CK3=FindCk(P3, P3')
-    RetP2[0] = P2;                       // P2
-    RetP2[1] = P2plus;                   // P2'
-    RetKeyPhi[0] = keyphi;               // keyfai
-    RetKeyPhi[1] = keyphiplus;           // keyfai'
+    RetCK3 = Find_CK(2, P3, P3plus); // CK3=FindCk(P3, P3')
+    RetP2[0] = P2;                     // P2
+    RetP2[1] = P2plus;                 // P2'
+    RetKeyPhi[0] = keyphi;             // keyfai
+    RetKeyPhi[1] = keyphiplus;         // keyfai'
     return 0;
 }
 
-int Pr_ReEnc(std::vector<std::vector<int>> CK, std::vector<std::vector<int>> P2, std::vector<std::string> KeyPhi, std::vector<std::string> c,
-             std::vector<std::string> &ret_c)
+int Pr_ReEnc(std::vector<int> CK3, std::vector<std::vector<int>> P2, std::vector<std::string> KeyPhi, std::vector<std::string> c, std::vector<std::string> dc,
+             std::vector<std::string> &cplus, std::vector<std::string> &dcplus)
 {
-    if (CK.size() != 2 || P2.size() != 2 || KeyPhi.size() != 2)
+    if (P2.size() != 2 || KeyPhi.size() != 2)
     {
-        std::cout << "[Pr_ReEnc] wrong output, the lenght of CK should be 2, P2 should be 2, KeyPhi should be 2 " << std::endl;
+        std::cout << "[Pr_ReEnc] wrong output, the lenght of P2 should be 2, KeyPhi should be 2 " << std::endl;
         return -1;
     }
-    if (c.size() != ret_c.size())
+    if (c.size() != cplus.size() || dc.size() != dcplus.size() || c.size() != dc.size())
     {
-        std::cout << "[Pr_ReEnc] the length of c and ret_c should be equal" << std::endl;
+        std::cout << "[Pr_ReEnc] the length of c, dc, cplus and dcplus should be equal" << std::endl;
         return -1;
     }
-    int n = c.size(), s = n - 1;
-    std::vector<std::string> cplus(n);
-    std::vector<std::string> cplusplus(n);
-    // ci'=Perm( CK1, ci ^ Perm(P2, ci-1))
-    for (int i = s; i > 0; i--)
-    {
-        cplus[i] = Permutation(CK[0].size(), CK[0], Xor(c[i], Permutation(P2[0].size(), P2[0], c[i - 1])));
-    }
-    // c1''..cs''= Perm(CK3, c1'...cs')
-    if (Permutation2(1, CK[1], cplus, cplusplus))
-    {
-        std::cout << "[Pr_ReEnc] run Permutation2 err" << std::endl;
-        return -1;
-    }
-    // c0'' = Perm(CK1, c0 ^ Perm(P2, keypai))
-    cplusplus[0] = Permutation(CK[0].size(), CK[0], Xor(c[0], Permutation(P2[0].size(), P2[0], KeyPhi[0])));
-    // ret_c0 = c0'' ^ Perm(P2', keypai')
-    ret_c[0] = Xor(cplusplus[0], Permutation(P2[1].size(), P2[1], KeyPhi[1]));
-    // ret_ci = ci'' ^ Perm(P2', ci-1'')
-    for (int i = 1; i < n; i++)
-    {
-        ret_c[i] = Xor(cplusplus[i], Permutation(P2[1].size(), P2[1], ret_c[i - 1]));
+    for(int i=0;i<c.size();i++){
+        // dci' = dci ^ Perm(P2, ci)
+        dcplus[i] = Xor(dc[i], Permutation(P2[0].size(), P2[0], c[i]));
+        // ci' = ci ^ Perm(P2, KeyPhi)
+        cplus[i] = Xor(c[i], Permutation(P2[0].size(), P2[0], KeyPhi[0]));
+        // (ci', dci') = Perm(CK3, (ci', dci'))
+        std::vector<std::string> pin{cplus[i], dcplus[i]};
+        std::vector<std::string> dpin(2);
+        Permutation2(0, CK3, pin, dpin);
+        cplus[i] = dpin[0];
+        dcplus[i] = dpin[1];
+        //ci'= ci' ^ Perm(P2', keyphi')
+        cplus[i] = Xor(cplus[i], Permutation(P2[1].size(), P2[1], KeyPhi[1]));
+        //dci'= dci' ^ Perm(P2', ci-1')
+        dcplus[i] = Xor(dcplus[i], Permutation(P2[1].size(), P2[1], cplus[i]));
     }
     return 0;
 }
