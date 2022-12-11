@@ -30,15 +30,19 @@ namespace VH{
             static rocksdb::DB *ss_db;
             int MAX_THREADS; //最大线程数
             rocksdb::Options options;
+            std::unordered_map<std::string,std::string> DX;
+            std::string dx_path;
         
         public:
-            VHServiceImpl(const std::string db_path, int concurrent)
+            VHServiceImpl(const std::string db_path, int concurrent,const std::string dx_path_p)
             {
                 signal(SIGINT, abort); //中断信号，缺省行为终止进程
                 options.create_if_missing = true;
                 Util::set_db_common_options(options); //数据库默认配置
                 rocksdb::Status s1 = rocksdb::DB::Open(options, db_path, &ss_db);
                 MAX_THREADS = concurrent; 
+                DX["test"] = "test";
+                dx_path=dx_path_p;
             }
             static void abort(int signum)
             {
@@ -76,47 +80,80 @@ namespace VH{
                     return "";
             }
             
-            //接收客户端传来的数据
+            //接收客户端传来的数据 存进数据库里
+            // Status update_save_DB(ServerContext * context, ServerReader<UpdateRequestMessage> * reader, ExecuteStatus * response)
+            // {
+            //     std::string l;
+            //     std::string e;
+            //     //std::map<std::string,std::string> DX;
+            //     struct timeval t1, t2;
+            //     int sum = 0; 
+
+            //     std::cout << "更新批量的键值对！" << std::endl;
+            //     UpdateRequestMessage request;
+            //     while (reader->Read(&request))
+            //     {  
+            //         l = request.l();
+            //         e = request.e();
+            //         //DX[l]=e;
+            //         int status = store(ss_db, l, e);
+            //         if (status != 0){
+            //             response->set_status(false);
+            //             return Status::CANCELLED;
+            //         }
+            //         sum++;
+            //         //std::cout<<sum<<std::endl;
+            //     }
+            //     // TODO 读取之后需要解锁
+            //     std::cout<<sum<<std::endl;
+            //     response->set_status(true);
+            //     // gettimeofday(&t1, NULL);
+            //     // for(auto i :DX){
+            //     //     int status = store(ss_db, i.first, i.second);
+            //     //     if (status != 0)
+            //     //     {
+            //     //         response->set_status(false);
+            //     //         return Status::CANCELLED;
+            //     //     }
+            //     // }
+            //     // gettimeofday(&t2, NULL);
+            //     // std::cout<<"server time:"<<((t2.tv_sec - t1.tv_sec) * 1000000.0 + t2.tv_usec - t1.tv_usec) / 1000.0<< " ms" << std::endl;
+
+            //     return Status::OK;
+            // }   
+
+            //接收客户端传来的数据 存进内存里
             Status update(ServerContext * context, ServerReader<UpdateRequestMessage> * reader, ExecuteStatus * response)
             {
                 std::string l;
                 std::string e;
-                //std::map<std::string,std::string> DX;
                 struct timeval t1, t2;
-                int sum = 0; 
-
                 std::cout << "更新批量的键值对！" << std::endl;
                 UpdateRequestMessage request;
-                while (reader->Read(&request))
+                int sum=0;
+
+                 while (reader->Read(&request))
                 {  
                     l = request.l();
                     e = request.e();
-                    //DX[l]=e;
-                    int status = store(ss_db, l, e);
-                    if (status != 0){
-                        response->set_status(false);
-                        return Status::CANCELLED;
-                    }
+                    DX[l]=e;
                     sum++;
                     //std::cout<<sum<<std::endl;
                 }
-                // TODO 读取之后需要解锁
-                std::cout<<sum<<std::endl;
-                response->set_status(true);
-                // gettimeofday(&t1, NULL);
-                // for(auto i :DX){
-                //     int status = store(ss_db, i.first, i.second);
-                //     if (status != 0)
-                //     {
-                //         response->set_status(false);
-                //         return Status::CANCELLED;
-                //     }
-                // }
-                // gettimeofday(&t2, NULL);
-                // std::cout<<"server time:"<<((t2.tv_sec - t1.tv_sec) * 1000000.0 + t2.tv_usec - t1.tv_usec) / 1000.0<< " ms" << std::endl;
 
+                std::cout<<sum<<std::endl;
+                write_dx_txt();
+                response->set_status(true);
                 return Status::OK;
-            }   
+            }
+
+            void write_dx_txt(){
+                std::ofstream	os(dx_path,std::ios::app);
+                for(auto i : DX){
+                    os<<i.first<<" "<<i.second<<"\n";
+                }
+                os.close();
+            }
 
             Status updateDX(ServerContext * context, const UpdateDXMessage *request, ExecuteStatus *response)
             {
@@ -135,6 +172,37 @@ namespace VH{
                 
             }
 
+            // Status search(ServerContext * context, const SearchRequestMessage *request,
+            //               ServerWriter<SearchReply> *writer)
+            // {
+            //     std::cout<<"server search"<<std::endl;
+            //     int q_f = request->q_f();
+            //     int cnt = request->cnt();
+            //     std::string x = request->x();
+            //     std::vector<std::string> Result(cnt);
+            //     struct timeval t1, t2;
+            //     gettimeofday(&t1, NULL);
+            //     for(int i=q_f,j=0;i<q_f+cnt;++i,++j){
+            //         std::string y = Util::H_key(x,std::to_string(i));
+            //         Result[j]= get(ss_db,y);
+            //         std::cout<<i<<std::endl;
+            //     }
+            //     gettimeofday(&t2, NULL);
+            //     std::cout<<"time1:"<<((t2.tv_sec - t1.tv_sec) * 1000000.0 + t2.tv_usec - t1.tv_usec) / 1000.0<< " ms" << std::endl;
+            //     //struct timeval t3, t4;
+            //     //gettimeofday(&t3, NULL);
+            //     for(auto i : Result){
+            //         SearchReply reply;
+            //         reply.set_ind(i);
+            //         writer->Write(reply);
+            //     }
+            //     //gettimeofday(&t4, NULL);
+            //     //std::cout<<"time:"<<((t4.tv_sec - t3.tv_sec) * 1000000.0 + t4.tv_usec - t3.tv_usec) / 1000.0<< " ms" << std::endl;
+
+            //     std::cout<<"server search end!"<<std::endl;
+            //     return Status::OK;
+            // }
+
             Status search(ServerContext * context, const SearchRequestMessage *request,
                           ServerWriter<SearchReply> *writer)
             {
@@ -143,23 +211,24 @@ namespace VH{
                 int cnt = request->cnt();
                 std::string x = request->x();
                 std::vector<std::string> Result(cnt);
-                // struct timeval t1, t2;
-                // gettimeofday(&t1, NULL);
+                struct timeval t1, t2;
+                gettimeofday(&t1, NULL);
                 for(int i=q_f,j=0;i<q_f+cnt;++i,++j){
                     std::string y = Util::H_key(x,std::to_string(i));
-                    Result [j]= get(ss_db,y);
+                    Result[j]= DX[y];
+                    std::cout<<i<<std::endl;
                 }
-                // gettimeofday(&t2, NULL);
-                // std::cout<<"time1:"<<((t2.tv_sec - t1.tv_sec) * 1000000.0 + t2.tv_usec - t1.tv_usec) / 1000.0<< " ms" << std::endl;
-                struct timeval t3, t4;
-                gettimeofday(&t3, NULL);
+                gettimeofday(&t2, NULL);
+                std::cout<<"time1:"<<((t2.tv_sec - t1.tv_sec) * 1000000.0 + t2.tv_usec - t1.tv_usec) / 1000.0<< " ms" << std::endl;
+                //struct timeval t3, t4;
+                //gettimeofday(&t3, NULL);
                 for(auto i : Result){
                     SearchReply reply;
                     reply.set_ind(i);
                     writer->Write(reply);
                 }
-                gettimeofday(&t4, NULL);
-                std::cout<<"time:"<<((t4.tv_sec - t3.tv_sec) * 1000000.0 + t4.tv_usec - t3.tv_usec) / 1000.0<< " ms" << std::endl;
+                //gettimeofday(&t4, NULL);
+                //std::cout<<"time:"<<((t4.tv_sec - t3.tv_sec) * 1000000.0 + t4.tv_usec - t3.tv_usec) / 1000.0<< " ms" << std::endl;
 
                 std::cout<<"server search end!"<<std::endl;
                 return Status::OK;
@@ -171,10 +240,10 @@ namespace VH{
 
     //静态成员在主函数外部声明
     rocksdb::DB *VH::VHServiceImpl::ss_db;
-    void RunServer(std::string db_path, int concurrent)
+    void RunServer(std::string db_path, int concurrent,std::string dx_path)
     {
         std::string server_address("0.0.0.0:50051"); //可修改服务器地址0.0.0.0
-        VH::VHServiceImpl service(db_path,concurrent);
+        VH::VHServiceImpl service(db_path,concurrent,dx_path);
         ServerBuilder builder;
         builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
         builder.RegisterService(&service);
