@@ -1,12 +1,14 @@
 syntax = "proto3";
 
-package pr_filter;
+package PrFilter;
 
 service PrFilterService {
 
-    // Setup
-    rpc SetupEmmt (stream SetupEmmtRequest) returns (SetupEmmtRespone) {}
-    rpc SetupXset (stream SetupXsetRequest) returns (SetupXsetRespone) {}
+    // Setup Emmt
+    rpc SetupEmmt (SetupEmmtRequest) returns (SetupEmmtRespone) {}
+
+    // Setup Xset
+    rpc SetupXset (SetupXsetRequest) returns (SetupXsetRespone) {}
 
     // Search
     rpc Search (SearchRequest) returns (SearchRespone) {}
