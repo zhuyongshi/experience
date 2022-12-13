@@ -1,4 +1,4 @@
-#include "ecsse_util.h"
+#include "crypto_util.h"
 using namespace CryptoPP;
 
 // hash函数 带盐值
@@ -80,18 +80,22 @@ std::string padding(std::string s, int len)
 }
 
 // string 异或
-std::string Xor(const std::string s1, const std::string s2)
+std::string Xor(std::string s1, std::string s2)
 {
     if (s1.length() != s2.length())
     {
-        std::cout << "[Xor] not sufficient size, s1 lenght: " << s1.length() << ", s2 lenght: " << s2.length() << std::endl;
-        return "";
+        std::cout << "[Warning] [Xor] not sufficient size, s1 lenght: " << s1.length() << ", s2 lenght: " << s2.length() << std::endl;
     }
-    std::string ans = s1.length() > s2.length() ? s1.substr(0, s2.length()) : s2.substr(0, s1.length());
-    std::string xor_str = s1.length() > s2.length() ? s2 : s1;
-    for (int i = 0; i < ans.length(); i++)
+    if (s1.length() < s2.length())
     {
-        ans[i] = ans[i] ^ xor_str[i];
+        std::string tmp = s1;
+        s1 = s2;
+        s2 = tmp;
+    }
+    std::string ans = s1;
+    for (int i = 0; i < s2.length(); i++)
+    {
+        ans[i] = ans[i] ^ s2[i];
     }
     return ans;
 }

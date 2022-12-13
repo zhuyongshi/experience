@@ -237,6 +237,11 @@ void Test_Pr_filter()
         {"name∩sex", std::vector<std::string>{"id1", "id2", "id3"}},
         {"age∩sex", std::vector<std::string>{"id1", "id2", "id3"}},
     };
+    // std::map<std::string, std::vector<std::string>> MM = {
+    //     {"name∩age", std::vector<std::string>{"id1id1id1id1id1id1id1id1id1id1id1", "id2id2id2id2id2id2id2id2id2id2id2", "id3id3id3id3id3id3id3id3id3id3id3"}},
+    //     {"name∩sex", std::vector<std::string>{"id1id1id1id1id1id1id1id1id1id1id1", "id2id2id2id2id2id2id2id2id2id2id2", "id3id3id3id3id3id3id3id3id3id3id3"}},
+    //     {"age∩sex", std::vector<std::string>{"id1id1id1id1id1id1id1id1id1id1id1", "id2id2id2id2id2id2id2id2id2id2id2", "id3id3id3id3id3id3id3id3id3id3id3"}},
+    // };
     pr_filter_setup_param setup_param;
     setup_param.lambda = 5;
     setup_param.mu = 10;
@@ -246,7 +251,7 @@ void Test_Pr_filter()
 
     // token
     pr_filter_token_param token_param;
-    token_param.len = 3;
+    token_param.len = MM["name∩age"][0].size();
     token_param.mk = setup_res.mk;
     token_param.words = std::vector<std::string>{"name", "age", "sex"};
     pr_filter_token_res token_res;

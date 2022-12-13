@@ -5,7 +5,7 @@
 #include <time.h>
 #include <cmath>
 #include <bits/stdc++.h>
-#include "ecsse_util.h"
+#include "crypto_util.h"
 
 using namespace CryptoPP;
 
@@ -56,9 +56,9 @@ std::vector<int> Find_CK(int n, std::vector<int> kpa, std::vector<int> kpb);
 // 密钥扩展函数，将密钥从key长度扩展到n长度
 int Permutationkey_Gen(std::string key, int n, std::vector<int> &ret);
 
-void AONTH(int ctr, std::string m, std::string &mplus, std::string &dmplus);
+int AONTH(int ctr, std::string m, std::string &mplus, std::string &dmplus);
 
-void D_AONTH(int ctr, std::string mplus, std::string dmplus, std::string &m);
+int D_AONTH(int ctr, std::string mplus, std::string dmplus, std::string &m);
 
 int Pr_Gen(std::vector<std::string> key, std::vector<std::string> w, int len, int doc, std::vector<int> &P1, std::vector<int> &P2, std::vector<int> &P3, std::string &keyphi);
 

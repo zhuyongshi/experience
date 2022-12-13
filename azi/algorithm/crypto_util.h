@@ -35,7 +35,7 @@ std::string toBinary(int n);
 std::string padding(std::string s, int len);
 
 // string 异或
-std::string Xor(const std::string s1, const std::string s2);
+std::string Xor(std::string s1, std::string s2);
 
 // 产生随机数密钥串，类型为byte
 int gen_key(byte *key1);

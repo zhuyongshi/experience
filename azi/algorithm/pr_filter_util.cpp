@@ -33,7 +33,7 @@ std::string Permutation(int n, std::vector<int> kep, std::string pin)
 // 排列加密算法: 将pin按kep顺序重排回原列
 std::string De_Permutation(int n, std::vector<int> kep, std::string dpin)
 {
-    char *dpout = new char(n);
+    char dpout[n];
     for (size_t i = 0; i < n; i++)
     {
         dpout[kep[i]] = dpin[i];
@@ -107,44 +107,66 @@ int Permutationkey_Gen(std::string key, int n, std::vector<int> &ret)
     return 0;
 }
 
-void AONTH(int ctr, std::string m, std::string &mplus, std::string &dmplus)
+int AONTH(int ctr, std::string m, std::string &mplus, std::string &dmplus)
 {
-    std::string keyp = H1(m, ANOTHKEY).substr(0, m.size());
+    int m_size = m.size();
+    std::string keyp = H1(m, ANOTHKEY).substr(0, m_size);
+    keyp = padding(keyp, m_size);
 
     // x = m ^ Hash(ctr+1, k')
     std::string ctrPlus = std::to_string(ctr + 1);
-    std::string digest = H1(ctrPlus, keyp).substr(0, m.size());
+    std::string digest = H1(ctrPlus, keyp).substr(0, m_size);
     std::string x = Xor(m, digest);
 
     // dm' = k' ^ H(x)
-    std::string hash_x = H(x).substr(0, keyp.size());
+    std::string hash_x = H(x).substr(0, m_size);
     dmplus = Xor(keyp, hash_x);
+    dmplus = padding(dmplus, m_size);
 
     // m' = x ^ H(dm' ^ (ctr+1))
-    std::string bina_ctr = toBinary(ctr + 1);
-    std::string pad_ctr = padding(bina_ctr, dmplus.size());
-    std::string xor_param = H(Xor(dmplus, pad_ctr)).substr(0, x.size());
+    std::string pad_ctr = padding(ctrPlus, m_size);
+    std::string xor_param = H(Xor(dmplus, pad_ctr)).substr(0, m_size);
     mplus = Xor(x, xor_param);
-    return;
+    if (m.length() != mplus.length())
+    {
+        std::cout << "[AONTH] m size is not equal to mplus: " << m.length() << "," << mplus.size() << std::endl;
+        return -1;
+    }
+    if (m.length() != dmplus.length())
+    {
+        std::cout << "[AONTH] m size is not equal to dmplus: " << m.length() << "," << dmplus.size() << std::endl;
+        return -1;
+    }
+    return 0;
 }
 
-void D_AONTH(int ctr, std::string mplus, std::string dmplus, std::string &m)
+int D_AONTH(int ctr, std::string mplus, std::string dmplus, std::string &m)
 {
+    if (mplus.length() != dmplus.length())
+    {
+        std::cout << "[D_AONTH] mplus size is not equal to dmplus: " << mplus.length() << "," << dmplus.size() << std::endl;
+        return -1;
+    }
+    int m_size = mplus.size();
     // x = m' ^ H(dm' ^ (ctr+1))
-    std::string bina_ctr = toBinary(ctr + 1);
-    std::string pad_ctr = padding(bina_ctr, dmplus.size());
-    std::string xor_param = H(Xor(dmplus, pad_ctr)).substr(0, mplus.size());
+    std::string ctrPlus = std::to_string(ctr + 1);
+    std::string pad_ctr = padding(ctrPlus, m_size);
+    std::string xor_param = H(Xor(dmplus, pad_ctr)).substr(0, m_size);
     std::string x = Xor(mplus, xor_param);
 
     // k' = dm' ^ H(x)
-    std::string hash_x = H(x).substr(0, dmplus.size());
+    std::string hash_x = H(x).substr(0, m_size);
     std::string keyp = Xor(dmplus, hash_x);
 
     // m = x ^ Hash(ctr+1, k')
-    std::string ctrPlus = std::to_string(ctr + 1);
-    std::string digest = H1(ctrPlus, keyp).substr(0, x.size());
+    std::string digest = H1(ctrPlus, keyp).substr(0, m_size);
     m = Xor(x, digest);
-    return;
+    if (m.length() != mplus.length())
+    {
+        std::cout << "[D_AONTH] m size is not right: " << m.length() << "," << mplus.size() << std::endl;
+        return -1;
+    }
+    return 0;
 }
 
 int Pr_Gen(std::vector<std::string> key, std::vector<std::string> w, int len, int doc,
@@ -198,9 +220,13 @@ int Pr_Enc(std::vector<std::string> key, std::vector<std::string> w, std::vector
         int ctr = ZX[m[i]];
         // (mi', dmi') = AONTH(mi, ctr)
         std::string mplus, dmplus;
-        AONTH(ctr, m[i], mplus, dmplus);
+        if (AONTH(ctr, m[i], mplus, dmplus) != 0)
+        {
+            std::cout << "[Pr_Enc] run AONTH err" << std::endl;
+            return -1;
+        }
         // DX[(a,b)]<-ctr
-        DX.insert(std::pair<std::string, int>{mplus+dmplus, ctr});
+        DX.insert(std::pair<std::string, int>{mplus + dmplus, ctr});
         // (mi', dmi')= Perm(P3, (mi', dmi'))
         std::vector<std::string> pin{mplus, dmplus};
         std::vector<std::string> dpin(2);
@@ -216,7 +242,7 @@ int Pr_Enc(std::vector<std::string> key, std::vector<std::string> w, std::vector
 }
 
 int Pr_Dec(std::vector<std::string> key, std::vector<std::string> w, std::vector<std::string> c, std::vector<std::string> dc,
-            int len, std::map<std::string, int> DX, std::vector<std::string> &m)
+           int len, std::map<std::string, int> DX, std::vector<std::string> &m)
 {
     if (c.size() == 0 && dc.size() == 0)
     {
@@ -252,7 +278,11 @@ int Pr_Dec(std::vector<std::string> key, std::vector<std::string> w, std::vector
         // find from dx
         int ctr = DX[mplus + dmplus];
         // mi = D-AONTH(ctr, mi', dmi')
-        D_AONTH(ctr, mplus, dmplus, m[i]);
+        if (D_AONTH(ctr, mplus, dmplus, m[i]) != 0)
+        {
+            std::cout << "[Pr_Dec] run D_AONTH err" << std::endl;
+            return -1;
+        }
     }
     return 0;
 }
@@ -297,10 +327,10 @@ int Pr_ReGen(std::vector<std::string> key, std::vector<std::string> w, int len,
     }
 
     RetCK3 = Find_CK(2, P3, P3plus); // CK3=FindCk(P3, P3')
-    RetP2[0] = P2;                     // P2
-    RetP2[1] = P2plus;                 // P2'
-    RetKeyPhi[0] = keyphi;             // keyfai
-    RetKeyPhi[1] = keyphiplus;         // keyfai'
+    RetP2[0] = P2;                   // P2
+    RetP2[1] = P2plus;               // P2'
+    RetKeyPhi[0] = keyphi;           // keyfai
+    RetKeyPhi[1] = keyphiplus;       // keyfai'
     return 0;
 }
 
@@ -317,7 +347,8 @@ int Pr_ReEnc(std::vector<int> CK3, std::vector<std::vector<int>> P2, std::vector
         std::cout << "[Pr_ReEnc] the length of c, dc, cplus and dcplus should be equal" << std::endl;
         return -1;
     }
-    for(int i=0;i<c.size();i++){
+    for (int i = 0; i < c.size(); i++)
+    {
         // dci' = dci ^ Perm(P2, ci)
         dcplus[i] = Xor(dc[i], Permutation(P2[0].size(), P2[0], c[i]));
         // ci' = ci ^ Perm(P2, KeyPhi)
@@ -328,9 +359,9 @@ int Pr_ReEnc(std::vector<int> CK3, std::vector<std::vector<int>> P2, std::vector
         Permutation2(0, CK3, pin, dpin);
         cplus[i] = dpin[0];
         dcplus[i] = dpin[1];
-        //ci'= ci' ^ Perm(P2', keyphi')
+        // ci'= ci' ^ Perm(P2', keyphi')
         cplus[i] = Xor(cplus[i], Permutation(P2[1].size(), P2[1], KeyPhi[1]));
-        //dci'= dci' ^ Perm(P2', ci-1')
+        // dci'= dci' ^ Perm(P2', ci-1')
         dcplus[i] = Xor(dcplus[i], Permutation(P2[1].size(), P2[1], cplus[i]));
     }
     return 0;

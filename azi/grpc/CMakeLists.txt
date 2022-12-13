@@ -24,7 +24,7 @@ add_custom_command(
 include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
-aux_source_directory(src/crypto crypto_srcs)
+aux_source_directory(src/algorithm crypto_srcs)
 
 add_library(pr_grpc_proto
   ${pr_grpc_srcs}
