@@ -123,7 +123,7 @@ namespace VH{
             // }   
 
             //接收客户端传来的数据 存进内存里
-            Status update(ServerContext * context, ServerReader<UpdateRequestMessage> * reader, ExecuteStatus * response)
+            Status batchupdate(ServerContext * context, ServerReader<UpdateRequestMessage> * reader, ExecuteStatus * response)
             {
                 std::string l;
                 std::string e;
@@ -147,11 +147,23 @@ namespace VH{
                 return Status::OK;
             }
 
+            Status update(ServerContext * context, const UpdateRequestMessage *request, ExecuteStatus *response)
+            {
+
+                std::string l = request->l();
+                std::string e = request->e();
+                DX[l] = e;
+                return Status::OK;
+            }
+
             void write_dx_txt(){
                 std::ofstream	os(dx_path,std::ios::app);
+                int sum = 0;
                 for(auto i : DX){
+                    sum++;
                     os<<i.first<<" "<<i.second<<"\n";
                 }
+                std::cout<<sum<<std::endl;
                 os.close();
             }
 

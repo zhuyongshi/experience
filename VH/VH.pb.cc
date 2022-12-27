@@ -171,16 +171,17 @@ const char descriptor_table_protodef_VH_2eproto[] PROTOBUF_SECTION_VARIABLE(prot
   "e_dx\030\001 \003(\0132\017.VH.PairMessage\";\n\024SearchReq"
   "uestMessage\022\t\n\001x\030\001 \001(\014\022\013\n\003q_f\030\002 \001(\004\022\013\n\003c"
   "nt\030\003 \001(\004\"\032\n\013SearchReply\022\013\n\003ind\030\001 \001(\014\"\037\n\r"
-  "ExecuteStatus\022\016\n\006status\030\001 \001(\0102\257\001\n\003RPC\0227\n"
+  "ExecuteStatus\022\016\n\006status\030\001 \001(\0102\355\001\n\003RPC\0227\n"
   "\006search\022\030.VH.SearchRequestMessage\032\017.VH.S"
-  "earchReply\"\0000\001\0229\n\006update\022\030.VH.UpdateRequ"
-  "estMessage\032\021.VH.ExecuteStatus\"\000(\001\0224\n\010upd"
-  "ateDX\022\023.VH.UpdateDXMessage\032\021.VH.ExecuteS"
-  "tatus\"\000b\006proto3"
+  "earchReply\"\0000\001\0227\n\006update\022\030.VH.UpdateRequ"
+  "estMessage\032\021.VH.ExecuteStatus\"\000\022>\n\013batch"
+  "update\022\030.VH.UpdateRequestMessage\032\021.VH.Ex"
+  "ecuteStatus\"\000(\001\0224\n\010updateDX\022\023.VH.UpdateD"
+  "XMessage\032\021.VH.ExecuteStatus\"\000b\006proto3"
   ;
 static ::PROTOBUF_NAMESPACE_ID::internal::once_flag descriptor_table_VH_2eproto_once;
 const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_VH_2eproto = {
-  false, false, 455, descriptor_table_protodef_VH_2eproto, "VH.proto", 
+  false, false, 517, descriptor_table_protodef_VH_2eproto, "VH.proto", 
   &descriptor_table_VH_2eproto_once, nullptr, 0, 6,
   schemas, file_default_instances, TableStruct_VH_2eproto::offsets,
   file_level_metadata_VH_2eproto, file_level_enum_descriptors_VH_2eproto, file_level_service_descriptors_VH_2eproto,

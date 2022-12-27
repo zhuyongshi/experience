@@ -13,8 +13,11 @@ service RPC {
 // Search
 rpc search (SearchRequestMessage) returns (stream SearchReply) {}
 
-// Update
-rpc update (stream UpdateRequestMessage) returns ( ExecuteStatus ) {}
+// Update 
+rpc update (UpdateRequestMessage) returns ( ExecuteStatus ) {}
+
+//batch update
+rpc batchupdate (stream UpdateRequestMessage) returns ( ExecuteStatus ) {}
 
 //Update DX
 rpc updateDX ( UpdateDXMessage ) returns ( ExecuteStatus ) {}

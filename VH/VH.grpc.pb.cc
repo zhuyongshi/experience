@@ -24,6 +24,7 @@ namespace VH {
 static const char* RPC_method_names[] = {
   "/VH.RPC/search",
   "/VH.RPC/update",
+  "/VH.RPC/batchupdate",
   "/VH.RPC/updateDX",
 };
 
@@ -35,8 +36,9 @@ std::unique_ptr< RPC::Stub> RPC::NewStub(const std::shared_ptr< ::grpc::ChannelI
 
 RPC::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options)
   : channel_(channel), rpcmethod_search_(RPC_method_names[0], options.suffix_for_stats(),::grpc::internal::RpcMethod::SERVER_STREAMING, channel)
-  , rpcmethod_update_(RPC_method_names[1], options.suffix_for_stats(),::grpc::internal::RpcMethod::CLIENT_STREAMING, channel)
-  , rpcmethod_updateDX_(RPC_method_names[2], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_update_(RPC_method_names[1], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_batchupdate_(RPC_method_names[2], options.suffix_for_stats(),::grpc::internal::RpcMethod::CLIENT_STREAMING, channel)
+  , rpcmethod_updateDX_(RPC_method_names[3], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   {}
 
 ::grpc::ClientReader< ::VH::SearchReply>* RPC::Stub::searchRaw(::grpc::ClientContext* context, const ::VH::SearchRequestMessage& request) {
@@ -55,20 +57,43 @@ void RPC::Stub::async::search(::grpc::ClientContext* context, const ::VH::Search
   return ::grpc::internal::ClientAsyncReaderFactory< ::VH::SearchReply>::Create(channel_.get(), cq, rpcmethod_search_, context, request, false, nullptr);
 }
 
-::grpc::ClientWriter< ::VH::UpdateRequestMessage>* RPC::Stub::updateRaw(::grpc::ClientContext* context, ::VH::ExecuteStatus* response) {
-  return ::grpc::internal::ClientWriterFactory< ::VH::UpdateRequestMessage>::Create(channel_.get(), rpcmethod_update_, context, response);
+::grpc::Status RPC::Stub::update(::grpc::ClientContext* context, const ::VH::UpdateRequestMessage& request, ::VH::ExecuteStatus* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::VH::UpdateRequestMessage, ::VH::ExecuteStatus, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_update_, context, request, response);
 }
 
-void RPC::Stub::async::update(::grpc::ClientContext* context, ::VH::ExecuteStatus* response, ::grpc::ClientWriteReactor< ::VH::UpdateRequestMessage>* reactor) {
-  ::grpc::internal::ClientCallbackWriterFactory< ::VH::UpdateRequestMessage>::Create(stub_->channel_.get(), stub_->rpcmethod_update_, context, response, reactor);
+void RPC::Stub::async::update(::grpc::ClientContext* context, const ::VH::UpdateRequestMessage* request, ::VH::ExecuteStatus* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::VH::UpdateRequestMessage, ::VH::ExecuteStatus, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_update_, context, request, response, std::move(f));
 }
 
-::grpc::ClientAsyncWriter< ::VH::UpdateRequestMessage>* RPC::Stub::AsyncupdateRaw(::grpc::ClientContext* context, ::VH::ExecuteStatus* response, ::grpc::CompletionQueue* cq, void* tag) {
-  return ::grpc::internal::ClientAsyncWriterFactory< ::VH::UpdateRequestMessage>::Create(channel_.get(), cq, rpcmethod_update_, context, response, true, tag);
+void RPC::Stub::async::update(::grpc::ClientContext* context, const ::VH::UpdateRequestMessage* request, ::VH::ExecuteStatus* response, ::grpc::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_update_, context, request, response, reactor);
 }
 
-::grpc::ClientAsyncWriter< ::VH::UpdateRequestMessage>* RPC::Stub::PrepareAsyncupdateRaw(::grpc::ClientContext* context, ::VH::ExecuteStatus* response, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncWriterFactory< ::VH::UpdateRequestMessage>::Create(channel_.get(), cq, rpcmethod_update_, context, response, false, nullptr);
+::grpc::ClientAsyncResponseReader< ::VH::ExecuteStatus>* RPC::Stub::PrepareAsyncupdateRaw(::grpc::ClientContext* context, const ::VH::UpdateRequestMessage& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::VH::ExecuteStatus, ::VH::UpdateRequestMessage, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_update_, context, request);
+}
+
+::grpc::ClientAsyncResponseReader< ::VH::ExecuteStatus>* RPC::Stub::AsyncupdateRaw(::grpc::ClientContext* context, const ::VH::UpdateRequestMessage& request, ::grpc::CompletionQueue* cq) {
+  auto* result =
+    this->PrepareAsyncupdateRaw(context, request, cq);
+  result->StartCall();
+  return result;
+}
+
+::grpc::ClientWriter< ::VH::UpdateRequestMessage>* RPC::Stub::batchupdateRaw(::grpc::ClientContext* context, ::VH::ExecuteStatus* response) {
+  return ::grpc::internal::ClientWriterFactory< ::VH::UpdateRequestMessage>::Create(channel_.get(), rpcmethod_batchupdate_, context, response);
+}
+
+void RPC::Stub::async::batchupdate(::grpc::ClientContext* context, ::VH::ExecuteStatus* response, ::grpc::ClientWriteReactor< ::VH::UpdateRequestMessage>* reactor) {
+  ::grpc::internal::ClientCallbackWriterFactory< ::VH::UpdateRequestMessage>::Create(stub_->channel_.get(), stub_->rpcmethod_batchupdate_, context, response, reactor);
+}
+
+::grpc::ClientAsyncWriter< ::VH::UpdateRequestMessage>* RPC::Stub::AsyncbatchupdateRaw(::grpc::ClientContext* context, ::VH::ExecuteStatus* response, ::grpc::CompletionQueue* cq, void* tag) {
+  return ::grpc::internal::ClientAsyncWriterFactory< ::VH::UpdateRequestMessage>::Create(channel_.get(), cq, rpcmethod_batchupdate_, context, response, true, tag);
+}
+
+::grpc::ClientAsyncWriter< ::VH::UpdateRequestMessage>* RPC::Stub::PrepareAsyncbatchupdateRaw(::grpc::ClientContext* context, ::VH::ExecuteStatus* response, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncWriterFactory< ::VH::UpdateRequestMessage>::Create(channel_.get(), cq, rpcmethod_batchupdate_, context, response, false, nullptr);
 }
 
 ::grpc::Status RPC::Stub::updateDX(::grpc::ClientContext* context, const ::VH::UpdateDXMessage& request, ::VH::ExecuteStatus* response) {
@@ -107,16 +132,26 @@ RPC::Service::Service() {
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       RPC_method_names[1],
+      ::grpc::internal::RpcMethod::NORMAL_RPC,
+      new ::grpc::internal::RpcMethodHandler< RPC::Service, ::VH::UpdateRequestMessage, ::VH::ExecuteStatus, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+          [](RPC::Service* service,
+             ::grpc::ServerContext* ctx,
+             const ::VH::UpdateRequestMessage* req,
+             ::VH::ExecuteStatus* resp) {
+               return service->update(ctx, req, resp);
+             }, this)));
+  AddMethod(new ::grpc::internal::RpcServiceMethod(
+      RPC_method_names[2],
       ::grpc::internal::RpcMethod::CLIENT_STREAMING,
       new ::grpc::internal::ClientStreamingHandler< RPC::Service, ::VH::UpdateRequestMessage, ::VH::ExecuteStatus>(
           [](RPC::Service* service,
              ::grpc::ServerContext* ctx,
              ::grpc::ServerReader<::VH::UpdateRequestMessage>* reader,
              ::VH::ExecuteStatus* resp) {
-               return service->update(ctx, reader, resp);
+               return service->batchupdate(ctx, reader, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      RPC_method_names[2],
+      RPC_method_names[3],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< RPC::Service, ::VH::UpdateDXMessage, ::VH::ExecuteStatus, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](RPC::Service* service,
@@ -137,7 +172,14 @@ RPC::Service::~Service() {
   return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
 }
 
-::grpc::Status RPC::Service::update(::grpc::ServerContext* context, ::grpc::ServerReader< ::VH::UpdateRequestMessage>* reader, ::VH::ExecuteStatus* response) {
+::grpc::Status RPC::Service::update(::grpc::ServerContext* context, const ::VH::UpdateRequestMessage* request, ::VH::ExecuteStatus* response) {
+  (void) context;
+  (void) request;
+  (void) response;
+  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+}
+
+::grpc::Status RPC::Service::batchupdate(::grpc::ServerContext* context, ::grpc::ServerReader< ::VH::UpdateRequestMessage>* reader, ::VH::ExecuteStatus* response) {
   (void) context;
   (void) reader;
   (void) response;

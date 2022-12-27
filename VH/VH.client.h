@@ -19,30 +19,27 @@ using grpc::ClientWriterInterface;
 
 using grpc::Status;
 
-//用于生成子密钥，主密钥和初始化向量
-byte k[17] = "0123456789abcdef";
+std::string k = "0123456789abcdef";
 std::string iv = "0123456789abcdef";
 std::string K_enc = "abcdefghijklmnopq";
 
 namespace VH{
-    //若 frist + cnt_true > n 会出现漏掉真实文档的情况，这个比较危险，需要控制
+    
     struct st{
-        int query_first;  //查询头，这个数字也代表着继上一次查询已更新的次数
-        int cnt_true; //目前关键字对应的真实文档
+        int cnt_q;  //查询次数
+        int cnt; //当前版本下的更新次数
         std::string key;
     };
 
     class Client{
         public:
-        Client(std::shared_ptr<Channel> channel,std::string kw_path,std::string MM_st_path,int p_l,int p_p) : stub_(RPC::NewStub(channel))
+        Client(std::shared_ptr<Channel> channel,std::string kw_path,std::string MM_st_path) : stub_(RPC::NewStub(channel))
         {
             srand(time(0)); 
             get_w_array(kw_path,fullkw);
-            p = p_p;
-            l = p_l;
             MM_st_txt_path = MM_st_path;
             //如果这个文件不存在的话是没办法读MM_st的
-            //即 setup 时调用构造函数构造client对象的时候，会走下面的else
+            //即 调用构造函数构造client对象的时候，如果MM_st不存在会走下面的else
             //读取了以后，将MM_st.txt的内容清空，析构函数会将更新锅的MM_st重新写入
             if(Util::file_exist(MM_st_txt_path)){
                 std::cout<<"MM_st_txt exist"<<std::endl;
@@ -61,49 +58,14 @@ namespace VH{
             std::ofstream	os(MM_st_txt_path,std::ios::app);
            //将MM_st写回到文档里
             for(auto i : MM_st){
-                os<<i.first<<" "<<i.second.query_first<<" "<<i.second.cnt_true<<" "<<i.second.key<<"\n";
+                os<<i.first<<" "<<i.second.cnt_q<<" "<<i.second.cnt<<" "<<i.second.key<<"\n";
              }
             os.close();
         }
        
-        void setup(size_t thread_num){
-            struct timeval t1, t2;
-            std::cout<<"setup update data to server"<<std::endl;
-            
-            gettimeofday(&t1, NULL);
-            std::cout<<l*fullkw.size()<<std::endl;
-            ClientContext context;
-            ExecuteStatus exec_status;
-            std::unique_ptr<ClientWriterInterface<UpdateRequestMessage>> writer(stub_->update(&context, &exec_status));
 
 
-            std::vector<UpdateRequestMessage> update_list(l*fullkw.size());
 
-            for(int j=0;j<fullkw.size();j++){
-                // #pragma omp parallel for num_threads(thread_num)
-                for(int i=0;i<l;i++){
-                    std::string x = Util::H_key(MM_st[fullkw[j]].key,fullkw[j]); //保护关键字
-                    std::string y = Util::H_key(x,std::to_string(i));  //产生加密索引
-                    std::string e_value; 
-                    std::string op = "*2"; //op取值 0：app 1: del 2:full
-                    Util::encrypt(K_enc,iv,op,e_value); 
-
-                    UpdateRequestMessage request;
-                    request.set_l(y);
-                    request.set_e(e_value);
-                    writer->Write(request);
-                    //update_list[j*l+i] = request;
-                }
-            }
-
-            gettimeofday(&t2, NULL);
-           // Status status = update(update_list);
-            writer->WritesDone();
-            Status status = writer->Finish();
-            std::cout<<"client_setup time:"<<((t2.tv_sec - t1.tv_sec) * 1000000.0 + t2.tv_usec - t1.tv_usec) / 1000.0<< " ms" << std::endl;
-            std::cout<<"setup update finished"<<std::endl;
-
-        }
         Status updateDX(UpdateDXMessage updateDX)
         {
 
@@ -118,95 +80,76 @@ namespace VH{
         }
 
 
-        void update_algorithm(std::string id,std::vector<std::string> &kw_arr,
+        void update_algorithm(std::string label,std::string v,
                               std::map<std::string,std::queue<std::pair<std::string,std::string>>> &stash,
                               std::string op,int update_num)
         {
             struct timeval t1, t2;
-            std::vector<std::string> random_kw(p);
+            std::string random_label;
             gettimeofday(&t1, NULL);
-            gen_random_kw_array(random_kw,p);
-            std::vector<std::pair<std::string,std::string>> up_op_id(p);
-            write_stash_and_gen_up(random_kw,kw_arr,id,op,stash,up_op_id);
-            for(auto i : up_op_id){
-                std::cout<<i.first<<" "<<i.second<<std::endl;
-            }
-            
-            std::vector<UpdateRequestMessage> update_list(random_kw.size());
-            for(int i=0;i<random_kw.size();i++){
-                if(MM_st[random_kw[i]].query_first+MM_st[random_kw[i]].cnt_true+1>l) std::cout<<"目前更新了:"<<update_num<<"个文档"<<std::endl;
-                if(MM_st[random_kw[i]].cnt_true > l) std::cout<<"需要重新构建数据库"<<std::endl;
-                std::string x = Util::H_key(MM_st[random_kw[i]].key,random_kw[i]); //保护关键字
-                std::string y = Util::H_key(x,std::to_string(MM_st[random_kw[i]].query_first+1));  //产生加密索引
-                std::string e_value; 
-                Util::encrypt(K_enc,iv,up_op_id[i].first+','+up_op_id[i].second,e_value);
-                MM_st[random_kw[i]].query_first++;
+            random_label = gen_random_label();
+            std::pair<std::string,std::string> up;
+            write_stash_and_gen_up(random_label,label,v,op,stash,up);
 
-                UpdateRequestMessage request;
-                request.set_l(y);
-                request.set_e(e_value);
-                update_list[i] = request;
-            }
+
+            std::string x = Util::H_key(k,random_label+std::to_string(MM_st[random_label].cnt_q)); //保护关键字
+            std::string y = Util::H_key(x,std::to_string(MM_st[random_label].cnt));  //产生加密索引
+            std::string e_value; 
+            Util::encrypt(K_enc,iv,up.first+','+up.second,e_value);
+            MM_st[random_label].cnt++;
+
+            UpdateRequestMessage request;
+            request.set_l(y);
+            request.set_e(e_value);
             
             gettimeofday(&t2, NULL);
             std::cout<<"client_update time:"<<((t2.tv_sec - t1.tv_sec) * 1000000.0 + t2.tv_usec - t1.tv_usec) / 1000.0<< " ms" << std::endl;
 
-            std::cout<<"update_list.size = "<<update_list.size()<<std::endl;
             std::cout<<"update data to server"<<std::endl;
-            Status status = update(update_list);
+            Status status = update(request);
             std::cout<<"update finished"<<std::endl;
         }
 
         
 
-        void write_stash_and_gen_up(std::vector<std::string>& random_kw,std::vector<std::string>& kw,std::string id,
-                                    std::string op,std::map<std::string,std::queue<std::pair<std::string,std::string>>> &stash,
-                                    std::vector<std::pair<std::string,std::string>> &up_op_id)
+        void write_stash_and_gen_up(std::string random_label,std::string label,std::string v,std::string op, 
+                                    std::map<std::string,std::queue<std::pair<std::string,std::string>>> &stash,
+                                    std::pair<std::string,std::string> &up)
         {
-            std::pair<std::string,std::string> temp_op_id({op,id});
-            std::unordered_set<std::string> set_random_kw(random_kw.begin(),random_kw.end());
-            std::unordered_set<std::string> set_kw(kw.begin(),kw.end());
-
-            //kw中的元素没在抽样列表里面就放进stash里面
-            for(int i=0;i<kw.size();i++){
-                if(set_random_kw.find(kw[i]) == set_random_kw.end()){
-                    if(stash.find(kw[i])==stash.end()){
-                        std::queue<std::pair<std::string,std::string>> temp;
-                        temp.push(temp_op_id);
-                        stash[kw[i]] = temp;
-                    }else{
-                        stash[kw[i]].push(temp_op_id);
-                    }
-                }
-            }
-            
-            //在抽样列表里面，不在真kw里面，又在stash里面，则从stash里面拿出来
-            for(int i=0;i<random_kw.size();i++){
-                if(stash.find(random_kw[i])!=stash.end() && stash[random_kw[i]].size()>0 && set_kw.find(random_kw[i])==set_kw.end()){
-                    up_op_id[i]=stash[random_kw[i]].front();
-                    stash[random_kw[i]].pop();
+            std::pair<std::string,std::string> temp_op_v({op,v});
+            if(random_label != label){
+                if(stash.find(label) == stash.end()){
+                    std::queue<std::pair<std::string,std::string>> temp;
+                    temp.push(temp_op_v);
+                    stash[label] = temp;
                 }else{
-                    if(set_kw.find(random_kw[i])!=set_kw.end())
-                        up_op_id[i]=temp_op_id;
-                    else
-                        up_op_id[i]={temp_op_id.first,temp_op_id.second+'*'};
+                    stash[label].push(temp_op_v);
                 }
+
+                if(stash.find(random_label)!= stash.end() && stash[random_label].size()>0){
+                    std::pair<std::string,std::string> temp;
+                    up = stash[random_label].front();
+                    stash[random_label].pop();
+                }else{
+                    up = temp_op_v;
+                }
+            }else{
+                up = temp_op_v;
             }
+
         }        
         
 
-        void gen_random_kw_array(std::vector<std::string>& random_kw,int l){
-            for(int i=0;i<l;++i){
-                int temp = rand() % fullkw.size();
-                random_kw[i]=fullkw[temp];
-            }
+        std::string gen_random_label(){
+            int temp = rand() % fullkw.size();
+            return fullkw[temp];
         }
 
         void init_MM_st(){
             for(auto kw : fullkw){
                 MM_st[kw].key = kw + std::to_string(rand());
-                MM_st[kw].query_first = 0;
-                MM_st[kw].cnt_true = 0;
+                MM_st[kw].cnt_q = 0;
+                MM_st[kw].cnt = 0;
             }
         }
 
@@ -221,9 +164,9 @@ namespace VH{
                 input >> out;
                 w = out;
                 input >> out;
-                MM_st[w].query_first = stoi(out);
+                MM_st[w].cnt_q = stoi(out);
                 input >> out;
-                MM_st[w].cnt_true=stoi(out);
+                MM_st[w].cnt=stoi(out);
                 input >> out;
                 MM_st[w].key=out;
             }
@@ -246,14 +189,24 @@ namespace VH{
             key_myfile.close();
         }
 
+        Status update(UpdateRequestMessage update) {
+            ClientContext context;
 
-        Status update(std::vector<UpdateRequestMessage> update_list) {
+            ExecuteStatus exec_status;
+            Status status = stub_->update(&context, update, &exec_status);
+            if (status.ok())
+                assert(status.ok());
+            return status;
+        }
+
+
+        Status batch_update(std::vector<UpdateRequestMessage> update_list) {
             UpdateRequestMessage request;
 
             ClientContext context;
             ExecuteStatus exec_status;
 
-            std::unique_ptr<ClientWriterInterface<UpdateRequestMessage>> writer(stub_->update(&context, &exec_status));
+            std::unique_ptr<ClientWriterInterface<UpdateRequestMessage>> writer(stub_->batchupdate(&context, &exec_status));
 
             int i = 0;
 
@@ -275,8 +228,8 @@ namespace VH{
             std::string x = Util::H_key(MM_st[kw].key,kw); 
             SearchRequestMessage request;
             request.set_cnt(l);
-            if(l-MM_st[kw].query_first >=0) request.set_q_f(0);
-            else request.set_q_f(MM_st[kw].query_first-l);
+            if(l-MM_st[kw].cnt_q >=0) request.set_q_f(0);
+            else request.set_q_f(MM_st[kw].cnt_q-l);
             request.set_x(x);
 
             ClientContext context;
@@ -288,7 +241,7 @@ namespace VH{
            //这里获得了从server端返回的真实且经过op操作以后的id列表。
            //读取返回列表：
             SearchReply reply;
-            MM_st[kw].cnt_true = 0;
+            MM_st[kw].cnt = 0;
             
             std::vector<std::string> response(l);
             int i = 0;
@@ -337,8 +290,8 @@ namespace VH{
                 stash[kw].pop();
             }
             MM_st[kw].key = kw + std::to_string(rand());
-            MM_st[kw].cnt_true = ID.size();
-            MM_st[kw].query_first = 0;
+            MM_st[kw].cnt = ID.size();
+            MM_st[kw].cnt_q = 0;
             re_update(ID,kw,t3);
 
         }
@@ -374,7 +327,7 @@ namespace VH{
             std::cout<<"time2:"<<((t2.tv_sec - t1.tv_sec) * 1000000.0 + t2.tv_usec - t1.tv_usec) / 1000.0<< " ms" << std::endl;
             
             std::cout<<"re_update  data to server"<<std::endl;
-            Status status = update(update_list);
+            Status status = batch_update(update_list);
             std::cout<<"re_update finished"<<std::endl;
         }         
 
