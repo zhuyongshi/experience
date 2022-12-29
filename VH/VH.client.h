@@ -10,6 +10,7 @@
 #include <grpc++/grpc++.h>
 #include <VH.Util.h>
 #include "VH.grpc.pb.h"
+#include <cryptopp/randpool.h>
 //#include "omp.h"
 using grpc::Channel;
 using grpc::ClientAsyncResponseReaderInterface;
@@ -28,7 +29,6 @@ namespace VH{
     struct st{
         int cnt_q;  //查询次数
         int cnt; //当前版本下的更新次数
-        std::string key;
     };
 
     class Client{
@@ -58,7 +58,7 @@ namespace VH{
             std::ofstream	os(MM_st_txt_path,std::ios::app);
            //将MM_st写回到文档里
             for(auto i : MM_st){
-                os<<i.first<<" "<<i.second.cnt_q<<" "<<i.second.cnt<<" "<<i.second.key<<"\n";
+                os<<i.first<<" "<<i.second.cnt_q<<" "<<i.second.cnt<<"\n";
              }
             os.close();
         }
@@ -82,7 +82,7 @@ namespace VH{
 
         void update_algorithm(std::string label,std::string v,
                               std::map<std::string,std::queue<std::pair<std::string,std::string>>> &stash,
-                              std::string op,int update_num)
+                              std::string op)
         {
             struct timeval t1, t2;
             std::string random_label;
@@ -90,7 +90,6 @@ namespace VH{
             random_label = gen_random_label();
             std::pair<std::string,std::string> up;
             write_stash_and_gen_up(random_label,label,v,op,stash,up);
-
 
             std::string x = Util::H_key(k,random_label+std::to_string(MM_st[random_label].cnt_q)); //保护关键字
             std::string y = Util::H_key(x,std::to_string(MM_st[random_label].cnt));  //产生加密索引
@@ -103,11 +102,11 @@ namespace VH{
             request.set_e(e_value);
             
             gettimeofday(&t2, NULL);
-            std::cout<<"client_update time:"<<((t2.tv_sec - t1.tv_sec) * 1000000.0 + t2.tv_usec - t1.tv_usec) / 1000.0<< " ms" << std::endl;
+            //std::cout<<"client_update time:"<<((t2.tv_sec - t1.tv_sec) * 1000000.0 + t2.tv_usec - t1.tv_usec) / 1000.0<< " ms" << std::endl;
 
-            std::cout<<"update data to server"<<std::endl;
+            //std::cout<<"update data to server"<<std::endl;
             Status status = update(request);
-            std::cout<<"update finished"<<std::endl;
+            //std::cout<<"update finished"<<std::endl;
         }
 
         
@@ -115,7 +114,8 @@ namespace VH{
         void write_stash_and_gen_up(std::string random_label,std::string label,std::string v,std::string op, 
                                     std::map<std::string,std::queue<std::pair<std::string,std::string>>> &stash,
                                     std::pair<std::string,std::string> &up)
-        {
+        {   
+
             std::pair<std::string,std::string> temp_op_v({op,v});
             if(random_label != label){
                 if(stash.find(label) == stash.end()){
@@ -126,19 +126,19 @@ namespace VH{
                     stash[label].push(temp_op_v);
                 }
 
-                if(stash.find(random_label)!= stash.end() && stash[random_label].size()>0){
+                if(stash.find(random_label)!= stash.end() && stash[random_label].size()>0){ 
                     std::pair<std::string,std::string> temp;
                     up = stash[random_label].front();
                     stash[random_label].pop();
                 }else{
                     up = temp_op_v;
+                    up.second+="*"; //代表这是假的信息。
                 }
             }else{
                 up = temp_op_v;
             }
 
         }        
-        
 
         std::string gen_random_label(){
             int temp = rand() % fullkw.size();
@@ -147,7 +147,6 @@ namespace VH{
 
         void init_MM_st(){
             for(auto kw : fullkw){
-                MM_st[kw].key = kw + std::to_string(rand());
                 MM_st[kw].cnt_q = 0;
                 MM_st[kw].cnt = 0;
             }
@@ -167,8 +166,6 @@ namespace VH{
                 MM_st[w].cnt_q = stoi(out);
                 input >> out;
                 MM_st[w].cnt=stoi(out);
-                input >> out;
-                MM_st[w].key=out;
             }
             MM_myfile.close();
 
@@ -221,15 +218,13 @@ namespace VH{
             return status;
         }
 
-        void search(const std::string kw,std::map<std::string,std::queue<std::pair<std::string,std::string>>> &stash,std::unordered_set<std::string>& ID){
+        void search(const std::string label,std::map<std::string,std::queue<std::pair<std::string,std::string>>> &stash,std::unordered_set<std::string>& ID){
             std::cout<<"client search"<<std::endl;
             struct timeval t1,t2;
             gettimeofday(&t1, NULL);
-            std::string x = Util::H_key(MM_st[kw].key,kw); 
+            std::string x = Util::H_key(k,label+std::to_string(MM_st[label].cnt_q)); 
             SearchRequestMessage request;
-            request.set_cnt(l);
-            if(l-MM_st[kw].cnt_q >=0) request.set_q_f(0);
-            else request.set_q_f(MM_st[kw].cnt_q-l);
+            request.set_cnt(MM_st[label].cnt);
             request.set_x(x);
 
             ClientContext context;
@@ -241,25 +236,12 @@ namespace VH{
            //这里获得了从server端返回的真实且经过op操作以后的id列表。
            //读取返回列表：
             SearchReply reply;
-            MM_st[kw].cnt = 0;
             
-            std::vector<std::string> response(l);
+            std::vector<std::string> response(MM_st[label].cnt+1);
             int i = 0;
             while(reader->Read(&reply)){
                 response[i] = reply.ind();
-                // std::string op_id;
-                // Util::descrypt(K_enc,iv,reply.ind(),op_id);
-                // //std::cout<<op_id<<std::endl;
-                // if(op_id.find('*')<0){
-                //     //找不到‘*’代表是真的
-                //     int i = op_id.find(',');
-                //     std::string id = op_id.substr(i+1,op_id.size()) ;
-                //     std::string op = op_id.substr(0,i);
-                //     if(op == "0")  ID.insert(id);
-                //     else if(op == "1"){
-                //         if(ID.find(id) != ID.end())  ID.erase(id);
-                //     }
-                // }
+                i++;
             }
             struct timeval t3;
             gettimeofday(&t3, NULL);
@@ -280,40 +262,32 @@ namespace VH{
             }
             
             //从stash中把跟kw相关的取出来。
-            while(stash[kw].size()!=0){
-                std::pair<std::string,std::string> temp = stash[kw].front();;
+            while(stash[label].size()!=0){
+                std::pair<std::string,std::string> temp = stash[label].front();;
                 if(temp.first == "0")   ID.insert(temp.second);
-
                 else if(temp.second == "1"){
                     if(ID.find(temp.second) != ID.end())  ID.erase(temp.second);
                 }
-                stash[kw].pop();
+                stash[label].pop();
             }
-            MM_st[kw].key = kw + std::to_string(rand());
-            MM_st[kw].cnt = ID.size();
-            MM_st[kw].cnt_q = 0;
-            re_update(ID,kw,t3);
+            MM_st[label].cnt_q++;
+            re_update(ID,label,t3,stash);
 
         }
 
-        void re_update(const std::unordered_set<std::string> ID,const std::string kw, timeval t1){
+        void re_update(const std::unordered_set<std::string> ID,const std::string label, timeval t1,std::map<std::string,std::queue<std::pair<std::string,std::string>>> &stash){
             struct timeval t2;
-            std::vector<UpdateRequestMessage> update_list(l);
-            for(int i=0;i<l-ID.size();i++){
-                std::string x = Util::H_key(MM_st[kw].key,kw); //保护关键字
-                std::string y = Util::H_key(x,std::to_string(i));  //产生加密索引
-                std::string e_value; 
-                char op = '2'; //op取值 0：app 1: del 2:full
-                Util::encrypt(K_enc,iv,"*"+op,e_value); 
-
-                UpdateRequestMessage request;
-                request.set_l(y);
-                request.set_e(e_value);
-                update_list[i] = request;
+            std::vector<std::string> ID_arr(ID.begin(),ID.end());
+            while(ID_arr.size()>MM_st[label].cnt){
+                stash[label].push({"0",ID_arr[ID_arr.size()-1]});
             }
-            int i=l-ID.size();
-            for(auto j : ID){
-                std::string x = Util::H_key(MM_st[kw].key,kw); //保护关键字
+            while(ID_arr.size()<MM_st[label].cnt){
+                ID_arr.push_back("*");
+            }
+            std::vector<UpdateRequestMessage> update_list(MM_st[label].cnt);
+            int i = 0;
+            for(auto j : ID_arr){
+                std::string x = Util::H_key(k,label+std::to_string(MM_st[label].cnt_q)); //保护关键字
                 std::string y = Util::H_key(x,std::to_string(i));  //产生加密索引
                 std::string e_value; 
                 Util::encrypt(K_enc,iv,"0,"+j,e_value);
@@ -337,8 +311,6 @@ namespace VH{
             std::map<std::string, st> MM_st; //client存的状态表
             std::vector<std::string> fullkw; //关键字全集
             std::unique_ptr<RPC::Stub> stub_;
-            int l; 
-            int p;
             std::string MM_st_txt_path;
     };
 
@@ -358,6 +330,24 @@ namespace VH{
                 ws.push_back(out);
             }
             MM[id] = ws;
+        }
+    }
+
+    void get_update_pair(std::string path,std::vector<std::pair<std::string,std::string>> &up){
+        std::ifstream MM_myfile(path);
+        std::string line,label,v;
+        int i=0;
+        while (getline(MM_myfile, line))								
+        {
+            std::stringstream input(line);
+            std::string out;
+            input >> out;
+            label = out;
+            input >> out;
+            v = out;
+            up[i].first = label;
+            up[i].second = v;
+            i++;
         }
     }
 

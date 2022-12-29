@@ -12,12 +12,9 @@ PROTOS_PATH = .
 
 vpath %.proto $(PROTOS_PATH)
 
-all: system-check rpc_server rpc_setup rpc_update rpc_search
+all: system-check rpc_server rpc_update rpc_search
 
 rpc_server: VH.pb.o VH.grpc.pb.o rpc_server.o VH.Util.o 
-	$(CXX) $^ $(LDFLAGS) -o $@
-
-rpc_setup: rpc_setup.o VH.pb.o VH.grpc.pb.o  VH.Util.o 
 	$(CXX) $^ $(LDFLAGS) -o $@
 
 rpc_update: rpc_update.o VH.pb.o VH.grpc.pb.o  VH.Util.o 
@@ -38,7 +35,7 @@ clean:
 	rm -f *.o *.pb.cc *.pb.h 
 
 exe:
-	rm  rpc_server rpc_setup 
+	rm  rpc_server rpc_update rpc_search
 
 
 

@@ -20,8 +20,8 @@ using grpc::ServerWriter;
 using grpc::Status;
 
 using namespace CryptoPP;
-std::string iv = "0123456789abcdef";
-std::string K_enc = "abcdefghijklmnopq";
+
+
 
 namespace VH{
     
@@ -32,6 +32,7 @@ namespace VH{
             rocksdb::Options options;
             std::unordered_map<std::string,std::string> DX;
             std::string dx_path;
+            int sum;
         
         public:
             VHServiceImpl(const std::string db_path, int concurrent,const std::string dx_path_p)
@@ -43,6 +44,7 @@ namespace VH{
                 MAX_THREADS = concurrent; 
                 DX["test"] = "test";
                 dx_path=dx_path_p;
+                sum = 0;
             }
             static void abort(int signum)
             {
@@ -132,13 +134,13 @@ namespace VH{
                 UpdateRequestMessage request;
                 int sum=0;
 
-                 while (reader->Read(&request))
+                while (reader->Read(&request))
                 {  
                     l = request.l();
                     e = request.e();
                     DX[l]=e;
                     sum++;
-                    //std::cout<<sum<<std::endl;
+                    // std::cout<<sum<<std::endl;
                 }
 
                 std::cout<<sum<<std::endl;
@@ -147,12 +149,17 @@ namespace VH{
                 return Status::OK;
             }
 
+           //接收客户端传来的数据 存进内存里
             Status update(ServerContext * context, const UpdateRequestMessage *request, ExecuteStatus *response)
             {
-
+                
                 std::string l = request->l();
                 std::string e = request->e();
                 DX[l] = e;
+                // std::cout<<"l = "<<l<<std::endl;
+                // std::cout<<"e = "<<e<<std::endl;
+                std::cout<<sum<<std::endl;
+                sum++;
                 return Status::OK;
             }
 
@@ -163,7 +170,7 @@ namespace VH{
                     sum++;
                     os<<i.first<<" "<<i.second<<"\n";
                 }
-                std::cout<<sum<<std::endl;
+                //std::cout<<sum<<std::endl;
                 os.close();
             }
 
@@ -218,6 +225,8 @@ namespace VH{
             Status search(ServerContext * context, const SearchRequestMessage *request,
                           ServerWriter<SearchReply> *writer)
             {
+                Util::clear_txt(dx_path);
+                write_dx_txt();
                 std::cout<<"server search"<<std::endl;
                 int q_f = request->q_f();
                 int cnt = request->cnt();
@@ -232,16 +241,13 @@ namespace VH{
                 }
                 gettimeofday(&t2, NULL);
                 std::cout<<"time1:"<<((t2.tv_sec - t1.tv_sec) * 1000000.0 + t2.tv_usec - t1.tv_usec) / 1000.0<< " ms" << std::endl;
-                //struct timeval t3, t4;
-                //gettimeofday(&t3, NULL);
+
                 for(auto i : Result){
                     SearchReply reply;
                     reply.set_ind(i);
                     writer->Write(reply);
                 }
-                //gettimeofday(&t4, NULL);
-                //std::cout<<"time:"<<((t4.tv_sec - t3.tv_sec) * 1000000.0 + t4.tv_usec - t3.tv_usec) / 1000.0<< " ms" << std::endl;
-
+                
                 std::cout<<"server search end!"<<std::endl;
                 return Status::OK;
             }

@@ -11,7 +11,8 @@
 
 int main(int argc, char **argv)
 {
-    if (argc < 9)
+    srand((unsigned)time(NULL));
+    if (argc < 6)
     {
         std::cerr << "参数个数小于6个" << std::endl;
         exit(-1);
@@ -22,24 +23,22 @@ int main(int argc, char **argv)
     std::string order_MM_path = argv[3];
     int update_num = atoi(argv[5]);
     VH::Client client(grpc::CreateChannel("127.0.0.1:50051", grpc::InsecureChannelCredentials()), std::string(argv[1]),MM_st_path);
-    std::cout << "取order_map!" << std::endl;
-    std::unordered_map<std::string,std::vector<std::string>> order_MM;
-    VH::get_MM(order_MM_path,order_MM);
+    std::cout << "取update pair!" << std::endl;
+    std::vector<std::pair<std::string,std::string>> up_pair(update_num);
+    VH::get_update_pair(order_MM_path,up_pair);
 
     std::string stash_path = argv[4];
     std::map<std::string,std::queue<std::pair<std::string,std::string>>> stash;
     VH::get_stash(stash_path,stash);
     VH::Util::clear_txt(stash_path);
-
-    std::cout << "the number of updated pairs" << update_num << std::endl;
-    int j = 0;
-    for(auto i : order_MM){
-        for(auto z : i.second){
-            client.update_algorithm(i.first,z,stash,"0",j);
-            j++;
-            if(j>=update_num) break;
-        }
+    int sum = 0;
+    for(auto i :  up_pair){
+        //std::cout<<i.first<<" "<<i.second<<std::endl;
+        std::cout<<++sum<<std::endl;
+        client.update_algorithm(i.first,i.second,stash,"0");
     }
+    
+
     VH::write_stash_txt(stash_path,stash);
     std::cout << "update end!" << std::endl;
     return 0;
